@@ -86,6 +86,10 @@
                     <div class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></div>
                     <p class="hud-text text-[10px]">DRAG TO INSPECT</p>
                 </div>
+                <div class="flex items-center gap-2 mt-2 justify-end">
+                    <div class="w-2 h-2 rounded-full bg-orange-500 animate-ping"></div>
+                    <p class="hud-text text-[10px]">Click item to observe</p>
+                </div>
             </div>
         </header>
     </div>
@@ -298,7 +302,7 @@
         const deskHitbox = new THREE.Mesh(new THREE.BoxGeometry(4.5, 3, 2.5), hitboxMat);
         deskHitbox.position.copy(deskGroup.position);
         deskHitbox.position.y += 1;
-        deskHitbox.userData = { target: 'dashboard.html', title: 'DASHBOARD' };
+        deskHitbox.userData = { target: 'dashboard.html', title: 'ABOUT ME' };
         ufoGroup.add(deskHitbox);
         interactables.push(deskHitbox);
 
@@ -386,7 +390,7 @@
         const pilotHitbox = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 3), hitboxMat);
         pilotHitbox.position.copy(pilotGroup.position);
         pilotHitbox.position.y += 1.5;
-        pilotHitbox.userData = { target: 'profile.html', title: 'PROFILE' };
+        pilotHitbox.userData = { target: 'profile.html', title: 'RESEARCH' };
         ufoGroup.add(pilotHitbox);
         interactables.push(pilotHitbox);
 
@@ -439,7 +443,7 @@
         const archiveHitbox = new THREE.Mesh(new THREE.BoxGeometry(3.5, 4.5, 3.5), hitboxMat);
         archiveHitbox.position.copy(archiveGroup.position);
         archiveHitbox.position.y += 1.8;
-        archiveHitbox.userData = { target: 'stories.html', title: 'STORIES' };
+        archiveHitbox.userData = { target: 'stories.html', title: 'ACTIVITIES / CLUB' };
         ufoGroup.add(archiveHitbox);
         interactables.push(archiveHitbox);
 
