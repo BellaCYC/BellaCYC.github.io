@@ -37,6 +37,19 @@
         touch-action:none;
     }
 
+    /* ---------- Smart Ring: Three.js chrome ring viewer ---------- */
+    #ring-frame{
+        background:radial-gradient(ellipse at 50% 35%, #2a2e38 0%, #14161c 75%);
+        cursor:grab;
+    }
+    #ring-frame.dragging{ cursor:grabbing; }
+    #ring-canvas{ display:block; width:100%; height:100%; touch-action:none; }
+    .ring-hint{
+        position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+        font-family:'Inter',sans-serif; font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase;
+        color:rgba(255,255,255,0.55); pointer-events:none; white-space:nowrap;
+    }
+
     /* ---------- EssayBrain: Discord-style mock UI ---------- */
     #brain-frame{ background:#313338; aspect-ratio:16/10.5; max-width:640px; border-radius:16px; }
     .dc-shell{ display:flex; width:100%; height:100%; font-family:'Inter',sans-serif; }
@@ -179,8 +192,6 @@
             <p>---</p>
             <p class="text-lg text-slate-600" style="font-family: 'Times New Roman', Times, serif;">Software builds, tools, and things I've tinkered with.</p><br>
         </header>
-    
-  
 
     <!-- ============ 01 — SMART RING ============ -->
     <section class="proj-block reveal">
@@ -196,6 +207,10 @@
             <li>Planned the UI workflow for integrating smart-ring sensor data with AI-based health-risk prediction models using Android Studio.</li>
         </ul>
 
+        <div id="ring-frame" class="visual-frame mt-10">
+            <canvas id="ring-canvas"></canvas>
+            
+        </div>
     </section>
 
     <!-- ============ 02 — ESSAYBRAIN ============ -->
@@ -281,7 +296,7 @@
 
             <!-- wearer illustration: speech bubble above the head, earphone label leader-lined to the actual device -->
             <div class="wearer-illustration">
-                <div class="speech-bubble" id="speech-bubble">I understand what people said!</div>
+                <div class="speech-bubble" id="speech-bubble">I understand what people said</div>
                 <div class="wearer-figure">
                     <svg viewBox="0 0 220 170" width="195" height="151">
                         <!-- shoulders -->
@@ -323,7 +338,7 @@
         <div class="flex flex-row flex-wrap gap-4 py-2 mt-4">
             <img src="https://i.pinimg.com/736x/07/5b/c8/075bc8107cc55dbe0943478875e16c5b.jpg" alt="Photo 1" referrerpolicy="no-referrer" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
             <img src="https://i.pinimg.com/736x/1a/7a/7b/1a7a7ba4341f430fa3dc93bbeb43b28c.jpg" alt="Photo 2" referrerpolicy="no-referrer" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
-            
+            <img src="https://i.pinimg.com/736x/18/44/47/184447a906cc67826bbcfa0ee096f1c1.jpg" alt="Photo 3" referrerpolicy="no-referrer" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
         </div>
 
         <!-- demo video series: lined up left-to-right like the photo strip above -->
@@ -352,6 +367,185 @@
     </section>
 
 </main>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+
+<script type="module">
+/* ================= 01 — Smart Ring: minimal chrome ring, drag to rotate, scroll to zoom ================= */
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+(function(){
+    const frame = document.getElementById('ring-frame');
+    const canvas = document.getElementById('ring-canvas');
+    if(!frame || !canvas) return;
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(38, frame.clientWidth / frame.clientHeight, 0.1, 100);
+    camera.position.set(0, 0.9, 3.4);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    function resize(){
+        const w = frame.clientWidth, h = frame.clientHeight;
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // real reflections for the chrome — without an environment map, metalness:1 surfaces render almost black
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+    // ---------- lighting: soft studio setup for a clean chrome look ----------
+    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+
+    const key = new THREE.DirectionalLight(0xffffff, 2.2);
+    key.position.set(3, 4, 3);
+    scene.add(key);
+
+    const fill = new THREE.DirectionalLight(0xbcd7ff, 0.9);
+    fill.position.set(-4, 1.5, -2);
+    scene.add(fill);
+
+    const rim = new THREE.DirectionalLight(0xffffff, 1.1);
+    rim.position.set(-1, -2, 3);
+    scene.add(rim);
+
+    // large soft panels behind/above the ring purely to give the chrome long, believable highlight streaks
+    const panelMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.06, side: THREE.DoubleSide });
+    const panelA = new THREE.Mesh(new THREE.PlaneGeometry(6, 2.4), panelMat);
+    panelA.position.set(0, 1.2, -2.5);
+    scene.add(panelA);
+    const panelB = new THREE.Mesh(new THREE.PlaneGeometry(6, 1.6), panelMat);
+    panelB.position.set(0, -1.6, 2);
+    panelB.rotation.x = Math.PI;
+    scene.add(panelB);
+
+    // ---------- ring geometry ----------
+    const ringGroup = new THREE.Group();
+    scene.add(ringGroup);
+
+    const chromeMat = new THREE.MeshStandardMaterial({ color: 0xd7dade, metalness: 1, roughness: 0.14 });
+    const darkMat = new THREE.MeshStandardMaterial({ color: 0x15171c, metalness: 0.75, roughness: 0.32 });
+
+    // main polished band
+    const band = new THREE.Mesh(new THREE.TorusGeometry(1, 0.36, 64, 128), chromeMat);
+    ringGroup.add(band);
+
+    // slim dark bevel lines tracing the top and bottom edges of the band
+    const bevelTop = new THREE.Mesh(new THREE.TorusGeometry(1, 0.05, 24, 128), darkMat);
+    bevelTop.position.y = 0.335;
+    bevelTop.scale.set(1, 1, 0.55);
+    ringGroup.add(bevelTop);
+
+    const bevelBottom = bevelTop.clone();
+    bevelBottom.position.y = -0.335;
+    ringGroup.add(bevelBottom);
+
+    // ---------- built-in display: curved to follow the band's own surface, not a flat block ----------
+    const screenCanvas = document.createElement('canvas');
+    screenCanvas.width = 320;
+    screenCanvas.height = 200;
+    const screenCtx = screenCanvas.getContext('2d');
+    const screenTex = new THREE.CanvasTexture(screenCanvas);
+    screenTex.colorSpace = THREE.SRGBColorSpace;
+
+    const pages = [
+        { label: 'TIME',            value: '--:--',    unit: '' },
+        { label: 'BLOOD PRESSURE',  value: '118 / 76',  unit: 'mmHg' },
+        { label: 'BLOOD DENSITY',   value: '1.06',       unit: 'g/mL' },
+        { label: 'BREATH RATE',     value: '16',         unit: 'breaths/min' }
+    ];
+
+    function liveTime(){
+        const d = new Date();
+        const h = String(d.getHours()).padStart(2, '0');
+        const m = String(d.getMinutes()).padStart(2, '0');
+        return h + ':' + m;
+    }
+
+    function drawScreen(page){
+        const w = screenCanvas.width, h = screenCanvas.height;
+        screenCtx.clearRect(0, 0, w, h);
+
+        screenCtx.textAlign = 'center';
+        screenCtx.fillStyle = 'rgba(140, 220, 255, 0.95)';
+        screenCtx.font = '600 24px Inter, sans-serif';
+        screenCtx.fillText(page.label, w / 2, 58);
+
+        screenCtx.fillStyle = '#eafcff';
+        screenCtx.font = '700 68px Inter, sans-serif';
+        screenCtx.fillText(page.value === '--:--' ? liveTime() : page.value, w / 2, 132);
+
+        if(page.unit){
+            screenCtx.fillStyle = 'rgba(140, 220, 255, 0.8)';
+            screenCtx.font = '500 22px Inter, sans-serif';
+            screenCtx.fillText(page.unit, w / 2, 172);
+        }
+        screenTex.needsUpdate = true;
+    }
+    drawScreen(pages[0]);
+
+    // the readout sits directly on the band's own crown with no frame or panel —
+    // just the glowing text, so it merges with the ring's own surface/background.
+    // At the crown of the torus tube (its flat outward-facing ridge), the surface
+    // normal is simply +Z everywhere, so a plain flat plane sits flush there.
+    const screenAngle = 1.15; // position around the band's main circle (radians)
+    const screenGeo = new THREE.PlaneGeometry(0.72, 0.4);
+    const screenMesh = new THREE.Mesh(screenGeo, new THREE.MeshBasicMaterial({ map: screenTex, toneMapped: false, transparent: true }));
+    screenMesh.position.set(Math.cos(screenAngle), Math.sin(screenAngle), 0.365);
+    screenMesh.rotation.z = screenAngle + Math.PI / 2; // width axis follows the band's curve direction
+    ringGroup.add(screenMesh);
+
+    let pageIndex = 0;
+    setInterval(function(){
+        pageIndex = (pageIndex + 1) % pages.length;
+        drawScreen(pages[pageIndex]);
+    }, 2500);
+    setInterval(function(){
+        if(pages[pageIndex].value === '--:--') drawScreen(pages[pageIndex]);
+    }, 1000);
+
+    ringGroup.rotation.x = -0.32;
+    ringGroup.rotation.z = 0.06;
+
+    // ---------- controls: drag to rotate on any axis, scroll / pinch to zoom, no pan drift ----------
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.enablePan = false;
+    controls.minDistance = 2;
+    controls.maxDistance = 6;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 1.1;
+
+    renderer.domElement.addEventListener('pointerdown', () => { frame.classList.add('dragging'); controls.autoRotate = false; });
+    window.addEventListener('pointerup', () => frame.classList.remove('dragging'));
+
+    function animate(){
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+})();
+</script>
 
 <script>
 /* ---------- scroll reveal ---------- */
