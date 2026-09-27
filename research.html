@@ -16,6 +16,69 @@
             background-color: #0f172a;
             border-radius: 12px;
         }
+
+        /* ---------- Clickable photos: pop up bigger in a lightbox ---------- */
+        .lightbox-thumb {
+            cursor: zoom-in;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .lightbox-thumb:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+        }
+        #lightbox-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.88);
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            cursor: zoom-out;
+        }
+        #lightbox-overlay.open {
+            display: flex;
+        }
+        #lightbox-overlay img {
+            max-width: min(92vw, 1100px);
+            max-height: 88vh;
+            width: auto;
+            height: auto;
+            border-radius: 14px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            cursor: default;
+        }
+        #lightbox-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            font-size: 1.4rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        #lightbox-close:hover {
+            background: rgba(255, 255, 255, 0.22);
+        }
+        #lightbox-caption {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 0.8rem;
+            font-family: 'Times New Roman', Times, serif;
+        }
     </style>
 </head>
 <body class="antialiased text-gray-800">
@@ -25,7 +88,7 @@
             <div class="flex justify-between h-16 items-center">
                 <div class="flex-shrink-0 flex items-center gap-2">
                     <a href="index.html" class="w-8 h-8 rounded-full overflow-hidden block">
-                        <img src="https://i.pinimg.com/736x/1b/b2/bd/1bb2bdaf57edffb9f67d08efedd2fef5.jpg" alt="Yuan-Chen Chou" class="w-8 h-8 rounded-full object-cover" />
+                        <img src="https://i.pinimg.com/736x/1b/b2/bd/1bb2bdaf57edffb9f67d08efedd2fef5.jpg" referrerpolicy="no-referrer" alt="Yuan-Chen Chou" class="w-8 h-8 rounded-full object-cover" />
                     </a>
                     <a href="index.html" class="font-semibold text-lg tracking-tight text-slate-800">Yuan-Chen Chou</a>
                 </div>
@@ -98,9 +161,9 @@
                     </ul>
                     <!-- Horizontal Image Row -->
                     <div class="flex flex-row flex-wrap gap-4 py-2">
-                        <img src="https://i.pinimg.com/736x/6c/71/e5/6c71e569b492f91af0f503989615c807.jpg" alt="Photo 1" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
-                        <img src="https://i.pinimg.com/736x/32/24/0c/32240cce640e4677721288d09cbcae0f.jpg" alt="Photo 2" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
-                        <img src="https://i.pinimg.com/736x/a5/3f/4b/a53f4b3df1bcfa14f25b572854a874ea.jpg" alt="Photo 3" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+                        <img src="https://i.pinimg.com/736x/6c/71/e5/6c71e569b492f91af0f503989615c807.jpg" alt="Photo 1" referrerpolicy="no-referrer" onclick="openLightbox(this.src, this.alt)" class="lightbox-thumb h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+                        <img src="https://i.pinimg.com/736x/32/24/0c/32240cce640e4677721288d09cbcae0f.jpg" alt="Photo 2" referrerpolicy="no-referrer" onclick="openLightbox(this.src, this.alt)" class="lightbox-thumb h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+                        <img src="https://i.pinimg.com/736x/a5/3f/4b/a53f4b3df1bcfa14f25b572854a874ea.jpg" alt="Photo 3" referrerpolicy="no-referrer" onclick="openLightbox(this.src, this.alt)" class="lightbox-thumb h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
                     </div>
                 </div>
             </div>
@@ -125,9 +188,9 @@
                     </ul>
                     <!-- Horizontal Image Row -->
                     <div class="flex flex-row flex-wrap gap-4 py-2">
-                        <img src="https://i.pinimg.com/736x/3e/c9/22/3ec922a678683f5bd55043d505a6be58.jpg" alt="Photo 1" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
-                        <img src="https://i.pinimg.com/736x/16/d1/19/16d119067cf4c0dd3a0f3a38ea778a9e.jpg" alt="Photo 2" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
-                        <img src="https://i.pinimg.com/736x/1d/58/9f/1d589fa33d9129d8274be83250a94a2b.jpg" alt="Photo 3" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+                        <img src="https://i.pinimg.com/736x/3e/c9/22/3ec922a678683f5bd55043d505a6be58.jpg" alt="Photo 1" referrerpolicy="no-referrer" onclick="openLightbox(this.src, this.alt)" class="lightbox-thumb h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+                        <img src="https://i.pinimg.com/736x/16/d1/19/16d119067cf4c0dd3a0f3a38ea778a9e.jpg" alt="Photo 2" referrerpolicy="no-referrer" onclick="openLightbox(this.src, this.alt)" class="lightbox-thumb h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+                        <img src="https://i.pinimg.com/736x/1d/58/9f/1d589fa33d9129d8274be83250a94a2b.jpg" alt="Photo 3" referrerpolicy="no-referrer" onclick="openLightbox(this.src, this.alt)" class="lightbox-thumb h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
                     </div>
                 </div>
             </div>
@@ -175,7 +238,7 @@
             </div>
         </section>
 
-       
+
         <section id="interactive-viz" class="space-y-3 scroll-mt-24">
             <div class="space-y-2">
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
@@ -206,6 +269,13 @@
         </section>
 
     </main>
+
+    <!-- ---------- Lightbox overlay: click a photo to pop it up bigger ---------- -->
+    <div id="lightbox-overlay" onclick="if(event.target===this) closeLightbox()">
+        <button id="lightbox-close" onclick="closeLightbox()" aria-label="Close">&times;</button>
+        <img id="lightbox-img" src="" alt="" />
+        <span id="lightbox-caption"></span>
+    </div>
 
     <script>
         const canvas = document.getElementById('simulationCanvas');
@@ -494,6 +564,28 @@
         }
 
         window.addEventListener('resize', resizeCanvas);
+
+        /* ---------- Lightbox: click any photo to pop it up bigger ---------- */
+        function openLightbox(src, caption) {
+            const overlay = document.getElementById('lightbox-overlay');
+            const img = document.getElementById('lightbox-img');
+            const cap = document.getElementById('lightbox-caption');
+            img.src = src;
+            img.alt = caption || '';
+            cap.textContent = caption || '';
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const overlay = document.getElementById('lightbox-overlay');
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
     </script>
 </body>
 </html>
