@@ -79,6 +79,308 @@
             font-size: 0.8rem;
             font-family: 'Times New Roman', Times, serif;
         }
+
+        /* ---------- Middle Ear research: horizontal 4-stage system-workflow diagram ---------- */
+        .wf-diagram {
+            margin: 2.75rem auto 0;
+            max-width: 100%;
+            overflow-x: auto;
+            padding-bottom: 0.4rem;
+        }
+        .wf-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 0.82rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .wf-spine {
+            position: relative;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 42px;
+            min-width: 900px;
+        }
+        .wf-spine-line {
+            position: absolute;
+            left: 6%;
+            right: 6%;
+            top: 50%;
+            height: 3px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+            transform: translateY(-50%);
+        }
+        .wf-spine-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -30%;
+            width: 30%;
+            height: 100%;
+            background: linear-gradient(to right, transparent, #38bdf8 45%, #fef08a 65%, transparent);
+            box-shadow: 0 0 10px 2px rgba(56, 189, 248, 0.7);
+            animation: currentFlowH 2.6s linear infinite;
+        }
+        @keyframes currentFlowH {
+            0%   { left: -30%; }
+            100% { left: 100%; }
+        }
+        .wf-spine-node {
+            position: relative;
+            z-index: 2;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid var(--wf-accent, #94a3b8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            color: var(--wf-accent, #475569);
+            animation: nodeFlashH 2.6s ease-in-out infinite;
+        }
+        @keyframes nodeFlashH {
+            0%, 14%, 100% { box-shadow: none; }
+            7%             { box-shadow: 0 0 0 7px rgba(var(--wf-accent-rgb, 56, 189, 248), 0.3); }
+        }
+        .wf-spine-node:nth-child(2) { animation-delay: 0s; }
+        .wf-spine-node:nth-child(3) { animation-delay: 0.62s; }
+        .wf-spine-node:nth-child(4) { animation-delay: 1.24s; }
+        .wf-spine-node:nth-child(5) { animation-delay: 1.86s; }
+        .wf-cols {
+            display: flex;
+            gap: 14px;
+            min-width: 900px;
+        }
+        .wf-col {
+            flex: 1;
+            min-width: 210px;
+            display: flex;
+            flex-direction: column;
+        }
+        .wf-col-1 { --wf-accent: #2563eb; --wf-bg: #dbeafe; --wf-border: #bfdbfe; }
+        .wf-col-2 { --wf-accent: #16a34a; --wf-bg: #dcfce7; --wf-border: #bbf7d0; }
+        .wf-col-3 { --wf-accent: #d97706; --wf-bg: #ffedd5; --wf-border: #fed7aa; }
+        .wf-col-4 { --wf-accent: #dc2626; --wf-bg: #fee2e2; --wf-border: #fecaca; }
+        .wf-col-header {
+            background: var(--wf-bg);
+            border: 1px solid var(--wf-border);
+            border-radius: 10px 10px 0 0;
+            padding: 0.5rem 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .wf-col-header svg { width: 15px; height: 15px; color: var(--wf-accent); flex-shrink: 0; }
+        .wf-col-header span {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 0.66rem;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: var(--wf-accent);
+            line-height: 1.25;
+        }
+        .wf-col-body {
+            border: 1px solid var(--wf-border);
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            padding: 0.7rem;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            flex: 1;
+        }
+        .wf-box {
+            border: 1px dashed var(--wf-border);
+            border-radius: 8px;
+            padding: 0.5rem 0.65rem;
+            background: #fefefe;
+        }
+        .wf-box strong {
+            display: block;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 0.76rem;
+            color: #111827;
+            margin-bottom: 0.15rem;
+        }
+        .wf-box span {
+            display: block;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 0.76rem;
+            color: #4b5563;
+            line-height: 1.32;
+        }
+        .wf-connector {
+            position: relative;
+            height: 18px;
+            width: 3px;
+            margin: 0 auto;
+            background: var(--wf-border);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .wf-connector::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -60%;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(to bottom, transparent, var(--wf-accent), transparent);
+            animation: currentFlowV 1.6s linear infinite;
+        }
+        @keyframes currentFlowV {
+            0%   { top: -60%; }
+            100% { top: 100%; }
+        }
+        .wf-footer {
+            min-width: 900px;
+            margin-top: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 0.78rem;
+            color: #64748b;
+        }
+        .wf-footer .wf-footer-line {
+            flex: 1;
+            position: relative;
+            height: 2px;
+            background: #e2e8f0;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .wf-footer .wf-footer-line::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -25%;
+            width: 25%; height: 100%;
+            background: linear-gradient(to right, transparent, #38bdf8, transparent);
+            animation: currentFlowH 2.6s linear infinite;
+        }
+
+        /* ---------- Laptop mockup: cycles the 4 system screenshots ---------- */
+        /* ---------- Laptop mockup: angled 3/4 view, silver body, full (uncropped) screenshots ---------- */
+        .laptop-mock {
+            max-width: 820px;
+            margin: 2.5rem auto 0;
+            padding: 1.5rem 0 0.5rem;
+            perspective: 1700px;
+        }
+        .laptop-3d {
+            position: relative;
+            width: 92%;
+            margin: 0 auto;
+            transform-style: preserve-3d;
+            transform: rotateX(4deg) rotateY(-13deg);
+        }
+        .laptop-screen-frame {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 10.4;
+            background: #e4e7ea;
+            border: 9px solid #dfe2e6;
+            border-radius: 13px 13px 3px 3px;
+            box-shadow: 0 45px 80px -20px rgba(15, 23, 42, 0.5), inset 0 0 0 1px #c7cbd0;
+            transform-origin: bottom center;
+        }
+        .laptop-camera {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #9aa0a6;
+            z-index: 3;
+        }
+        .laptop-screen {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 5px;
+            background: #fff;
+        }
+        .laptop-card {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            cursor: zoom-in;
+            transition: opacity 0.7s ease;
+        }
+        .laptop-card img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            background: #fff;
+        }
+        /* only the front card is visible — a clean crossfade, no stacked/shadowed cards behind it */
+        .laptop-card[data-slot="0"] { opacity: 1; z-index: 2; pointer-events: auto; }
+        .laptop-card:not([data-slot="0"]) { opacity: 0; z-index: 1; pointer-events: none; }
+        .laptop-screen-hint {
+            position: absolute;
+            bottom: 8px; right: 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.6rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: rgba(15, 23, 42, 0.45);
+            pointer-events: none;
+            z-index: 5;
+        }
+        .laptop-base {
+            position: relative;
+            width: 122%;
+            left: -11%;
+            height: 16px;
+            background: linear-gradient(180deg, #eef1f3, #c7cbd0);
+            border-radius: 0 0 12px 12px;
+            transform-origin: top center;
+            transform: rotateX(90deg) translateZ(8px);
+            box-shadow: 0 25px 40px -8px rgba(15, 23, 42, 0.4);
+        }
+        .laptop-base::after {
+            content: '';
+            position: absolute;
+            left: 50%; top: 0;
+            transform: translateX(-50%);
+            width: 60px; height: 6px;
+            background: #b9bec4;
+            border-radius: 0 0 6px 6px;
+        }
+        .laptop-ground-shadow {
+            width: 60%;
+            height: 20px;
+            margin: 0.5rem auto 0;
+            background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.28), transparent 72%);
+            filter: blur(3px);
+        }
+        .laptop-dots {
+            display: flex; justify-content: center; gap: 6px; margin-top: 1.1rem;
+        }
+        .laptop-dot {
+            width: 6px; height: 6px; border-radius: 50%; background: #cbd5e1; transition: background 0.3s ease, transform 0.3s ease;
+        }
+        .laptop-dot.active {
+            background: #38bdf8; transform: scale(1.25);
+        }
     </style>
 </head>
 <body class="antialiased text-gray-800">
@@ -138,6 +440,130 @@
                         <li>Input otoscopic image data into different Convolutional neural network (CNN) models to identify the middle ear disease type data point with the highest accuracy.</li>
                         <li>Integrated back-end data processing with front-end UI system for otoscopic images using Azure OpenAI API into a Model-View-Controller (MVC)-based application.</li>
                     </ul>
+
+                    <!-- animated research workflow: horizontal 4-stage system diagram, current flows spine-to-spine and box-to-box -->
+                    <div class="wf-diagram">
+                        <div class="wf-title">System Workflow &middot; AI-Assisted Diagnosis for Middle Ear Disease</div>
+
+                        <div class="wf-spine">
+                            <div class="wf-spine-line"></div>
+                            <div class="wf-spine-node" style="--wf-accent:#2563eb; --wf-accent-rgb:37,99,235;">1</div>
+                            <div class="wf-spine-node" style="--wf-accent:#16a34a; --wf-accent-rgb:22,163,74;">2</div>
+                            <div class="wf-spine-node" style="--wf-accent:#d97706; --wf-accent-rgb:217,119,6;">3</div>
+                            <div class="wf-spine-node" style="--wf-accent:#dc2626; --wf-accent-rgb:220,38,38;">4</div>
+                        </div>
+
+                        <div class="wf-cols">
+                            <!-- 1: DATA INGESTION & CURATION -->
+                            <div class="wf-col wf-col-1">
+                                <div class="wf-col-header">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+                                    <span>Data Ingestion &amp;<br>Curation Pipeline</span>
+                                </div>
+                                <div class="wf-col-body">
+                                    <div class="wf-box">
+                                        <strong>Otoscopic Image Collection</strong>
+                                        <span>Extracted from the hospital's UI system.</span>
+                                    </div>
+                                    <div class="wf-connector"></div>
+                                    <div class="wf-box">
+                                        <strong>Quality Control &amp; Filtering</strong>
+                                        <span>Manual filtering to exclude poor-quality images; physician review to label disease types.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2: MODEL BENCHMARKING -->
+                            <div class="wf-col wf-col-2">
+                                <div class="wf-col-header">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>
+                                    <span>Model Benchmarking &amp;<br>Prompt Engineering</span>
+                                </div>
+                                <div class="wf-col-body">
+                                    <div class="wf-box">
+                                        <strong>CNN Model Benchmarking</strong>
+                                        <span>Evaluated CNN architectures to identify the highest-accuracy classifier.</span>
+                                    </div>
+                                    <div class="wf-connector"></div>
+                                    <div class="wf-box">
+                                        <strong>Multimodal Prompt Engineering</strong>
+                                        <span>Azure OpenAI GPT-4 Vision, prompted to evaluate and classify across ten disease categories.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3: MVC-BASED SYSTEM ARCHITECTURE -->
+                            <div class="wf-col wf-col-3">
+                                <div class="wf-col-header">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                                    <span>MVC-Based System<br>Architecture</span>
+                                </div>
+                                <div class="wf-col-body">
+                                    <div class="wf-box">
+                                        <strong>View Layer</strong>
+                                        <span>Hospital UI interface for image upload and result display.</span>
+                                    </div>
+                                    <div class="wf-connector"></div>
+                                    <div class="wf-box">
+                                        <strong>Controller &amp; Model Layers</strong>
+                                        <span>Back-end data processing wired to the AI models via the Azure OpenAI API.</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4: CLINICAL OUTPUT -->
+                            <div class="wf-col wf-col-4">
+                                <div class="wf-col-header">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                    <span>Clinical Inference &amp;<br>Diagnostic Output</span>
+                                </div>
+                                <div class="wf-col-body">
+                                    <div class="wf-box">
+                                        <strong>Disease Classification</strong>
+                                        <span>Ten target middle-ear conditions, returned to the clinician's UI.</span>
+                                    </div>
+                                    <div class="wf-connector"></div>
+                                    <div class="wf-box">
+                                        <strong>MVC-Delivered Report</strong>
+                                        <span>Diagnostic support surfaced back through the hospital's front-end application.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="wf-footer">
+                            <span>End-to-end pipeline</span>
+                            <span class="wf-footer-line"></span>
+                            <span>Otoscopic image &rarr; AI-assisted diagnosis</span>
+                        </div>
+                    </div>
+
+                    <!-- laptop mockup: angled 3/4 view, full (uncropped) screenshots, front image crossfades every 2s -->
+                    <div class="laptop-mock">
+                        <div class="laptop-3d">
+                            <div class="laptop-screen-frame">
+                                <div class="laptop-camera"></div>
+                                <div class="laptop-screen" id="laptop-screen">
+                                    <div class="laptop-card" data-slot="0" onclick="openLightbox(this.querySelector('img').src, this.querySelector('img').alt)">
+                                        <img src="https://i.pinimg.com/736x/03/a6/69/03a669630f498254c5296f38834ea13d.jpg" referrerpolicy="no-referrer" alt="AI ENT system — otoscopic image upload" />
+                                    </div>
+                                    <div class="laptop-card" data-slot="1" onclick="openLightbox(this.querySelector('img').src, this.querySelector('img').alt)">
+                                        <img src="https://i.pinimg.com/736x/a2/df/11/a2df11a966b8d6909b0fa0b49a8aa780.jpg" referrerpolicy="no-referrer" alt="AI ENT system — tympanic membrane AI analysis result" />
+                                    </div>
+                                    <div class="laptop-card" data-slot="2" onclick="openLightbox(this.querySelector('img').src, this.querySelector('img').alt)">
+                                        <img src="https://i.pinimg.com/736x/ae/77/83/ae7783e5a5000ec86aaed313b76a950f.jpg" referrerpolicy="no-referrer" alt="AI ENT system — audiogram upload" />
+                                    </div>
+                                    <div class="laptop-card" data-slot="3" onclick="openLightbox(this.querySelector('img').src, this.querySelector('img').alt)">
+                                        <img src="https://i.pinimg.com/736x/d7/2d/b1/d72db143816b46a7f42e880864081363.jpg" referrerpolicy="no-referrer" alt="AI ENT system — audiogram AI analysis result" />
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                            <div class="laptop-base"></div>
+                        </div>
+                        <div class="laptop-ground-shadow"></div>
+                        <div class="laptop-dots" id="laptop-dots"></div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -586,6 +1012,38 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') closeLightbox();
         });
+
+        /* ---------- Laptop screen: cascading card stack, front card rotates to the back every 2s ---------- */
+        (function(){
+            const screen = document.getElementById('laptop-screen');
+            if(!screen) return;
+            const cards = Array.from(screen.querySelectorAll('.laptop-card'));
+            const dotsWrap = document.getElementById('laptop-dots');
+
+            cards.forEach((_, i) => {
+                const d = document.createElement('span');
+                d.className = 'laptop-dot' + (i === 0 ? ' active' : '');
+                dotsWrap.appendChild(d);
+            });
+            const dots = Array.from(dotsWrap.children);
+
+            // order[0] is the card index currently in the front slot, order[1] next, etc.
+            let order = cards.map((_, i) => i);
+
+            function render(){
+                order.forEach((cardIndex, slot) => {
+                    cards[cardIndex].setAttribute('data-slot', slot);
+                });
+                dots.forEach((d, n) => d.classList.toggle('active', n === order[0]));
+            }
+            render();
+
+            setInterval(function(){
+                // send the front card to the back of the stack; everyone else moves up one slot
+                order.push(order.shift());
+                render();
+            }, 2000);
+        })();
     </script>
 </body>
 </html>
