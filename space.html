@@ -73,7 +73,7 @@
         <div class="reticle-line"></div>
     </div>
 
-    <!-- Static  HUD UI -->
+    <!-- Static HUD UI -->
     <div id="ui-layer">
         <header class="flex justify-between items-start">
             <div>
@@ -302,7 +302,7 @@
         const deskHitbox = new THREE.Mesh(new THREE.BoxGeometry(4.5, 3, 2.5), hitboxMat);
         deskHitbox.position.copy(deskGroup.position);
         deskHitbox.position.y += 1;
-        deskHitbox.userData = { target: 'dashboard.html', title: 'ABOUT ME' };
+        deskHitbox.userData = { target: 'about.html', title: 'ABOUT ME' };
         ufoGroup.add(deskHitbox);
         interactables.push(deskHitbox);
 
@@ -408,7 +408,7 @@
         const pilotHitbox = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 3), hitboxMat);
         pilotHitbox.position.copy(pilotGroup.position);
         pilotHitbox.position.y += 1.5;
-        pilotHitbox.userData = { target: 'profile.html', title: 'RESEARCH' };
+        pilotHitbox.userData = { target: 'research.html', title: 'RESEARCH' };
         ufoGroup.add(pilotHitbox);
         interactables.push(pilotHitbox);
 
@@ -461,7 +461,7 @@
         const archiveHitbox = new THREE.Mesh(new THREE.BoxGeometry(3.5, 4.5, 3.5), hitboxMat);
         archiveHitbox.position.copy(archiveGroup.position);
         archiveHitbox.position.y += 1.8;
-        archiveHitbox.userData = { target: 'stories.html', title: 'ACTIVITIES / CLUB' };
+        archiveHitbox.userData = { target: 'activities.html', title: 'ACTIVITIES / CLUB' };
         ufoGroup.add(archiveHitbox);
         interactables.push(archiveHitbox);
 
