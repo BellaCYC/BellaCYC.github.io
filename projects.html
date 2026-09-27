@@ -73,9 +73,9 @@
                 </div>
                 <div class="flex space-x-2 md:space-x-6">
                     <a href="index.html" class="text-slate-500 hover:text-slate-900 px-2 py-2 text-xs md:text-sm font-medium transition-all">Back to Space</a>
-                    <a href="dashboard.html" class="text-slate-500 hover:text-slate-900 px-2 py-2 text-xs md:text-sm font-medium transition-all">About Me</a>
-                    <a href="profile.html" class="text-slate-500 hover:text-slate-900 px-2 py-2 text-xs md:text-sm font-medium transition-all">Research</a>
-                    <a href="stories.html" class="text-slate-500 hover:text-slate-900 px-2 py-2 text-xs md:text-sm font-medium transition-all">Activities / Awards</a>
+                    <a href="about.html" class="text-slate-500 hover:text-slate-900 px-2 py-2 text-xs md:text-sm font-medium transition-all">About Me</a>
+                    <a href="research.html" class="text-slate-500 hover:text-slate-900 px-2 py-2 text-xs md:text-sm font-medium transition-all">Research</a>
+                    <a href="activities.html" class="text-slate-500 hover:text-slate-900 px-2 py-2 text-xs md:text-sm font-medium transition-all">Activities / Awards</a>
                     <a href="projects.html" class="text-slate-800 border-b-2 border-slate-800 px-2 py-2 text-xs md:text-sm font-medium transition-all">Projects</a>
                 </div>
             </div>
@@ -89,13 +89,15 @@
             <p>---</p>
             <p class="text-lg text-slate-600" style="font-family: 'Times New Roman', Times, serif;">Software builds, tools, and things I've tinkered with.</p>
         </header>
+
         <section id="software-projects" class="space-y-3 scroll-mt-24">
             <div class="space-y-2">
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Software / App</span>
                 </h2>
             </div>
-        <div class="grid grid-cols-1 gap-8">
+
+            <div class="grid grid-cols-1 gap-8">
                 <div class="border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
                     <h3 class="text-lg font-semibold italic text-gray-900 mb-3" style="font-family: 'Times New Roman', Times, serif;">
                         Hearing Aid App&emsp;2026-2027
@@ -108,14 +110,6 @@
                     </ul>
                 </div>
 
-        <section id="software-projects" class="space-y-3 scroll-mt-24">
-            <div class="space-y-2">
-                <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
-                    
-                </h2>
-            </div>
-
-            <div class="grid grid-cols-1 gap-8">
                 <div class="border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
                     <h3 class="text-lg font-semibold italic text-gray-900 mb-3" style="font-family: 'Times New Roman', Times, serif;">
                         EssayBrain
@@ -128,19 +122,34 @@
                         <span class="tech-pill">SQLite</span>
                     </div>
                     <ul style="font-family: 'Times New Roman', Times, serif;" class="list-disc pl-6 space-y-3 text-lg text-gray-800 leading-relaxed">
-                        <li>Engineered an AI-powered Discord bot in Python using discord.py and Google’s Gemini API to act as a Socratic essay coach, guiding users through structured brainstorming without generating raw text.</li>
+                        <li>Engineered an AI-powered Discord bot in Python using discord.py and Google's Gemini API to act as a Socratic essay coach, guiding users through structured brainstorming without generating raw text.</li>
                         <li>Architected a dynamic Intent Router that contextually parses incoming messages to route requests between Socratic coaching, automated paraphrasing, and historical memory retrieval.</li>
                         <li>Designed a multi-tenant memory engine using SQLite to store and index user achievements, tagging entries with unique Discord IDs to maintain data isolation and privacy across multiple users.</li>
                         <li>Implemented a logical cross-examination feature that queries current user inputs against past database logs to highlight contradictions and expose cognitive biases in essay arguments.</li>
-                        <li>Built a long-response handler to tokenize and chunk AI responses exceeding Discord’s 2,000-character limit, ensuring seamless multi-message delivery without breaking formatting.</li>
+                        <li>Built a long-response handler to tokenize and chunk AI responses exceeding Discord's 2,000-character limit, ensuring seamless multi-message delivery without breaking formatting.</li>
                     </ul>
                 </div>
 
-                <!-- Add more project cards here as they come together — copy the block above and swap in the new title, tech-pills, and bullets. -->
+                <!-- Add more project cards here as they come together — copy a block above and swap in the new title, tech-pills, and bullets. -->
             </div>
         </section>
 
-        
+        <section id="hardware-and-tinkering" class="space-y-3 scroll-mt-24">
+            <div class="space-y-2">
+                <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
+                    <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Hardware & Tinkering</span>
+                </h2>
+            </div>
+
+            <div class="grid grid-cols-1 gap-8">
+                <div class="border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
+                    <ul style="font-family: 'Times New Roman', Times, serif;" class="list-disc pl-6 space-y-3 text-lg text-gray-800 leading-relaxed">
+                        <li>Dismantling computer towers and modifying motherboards out of curiosity for how the hardware fits together.</li>
+                        <li>Working through Structure and Interpretation of Computer Programs (SICP) as self-study.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
 
     </main>
 </body>
