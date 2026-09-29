@@ -37,35 +37,40 @@
         touch-action:none;
     }
 
-    /* ---------- Smart Ring: 3D product viewer + companion app ---------- */
+    /* ---------- Smart Ring: your two 3D models (iframe) + companion app ---------- */
     .ring-stage{
-        display:flex; flex-wrap:wrap; align-items:center; justify-content:center;
+        display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:center;
         gap:1.5rem; margin-top:2.5rem;
     }
-    .ring-stage #ring-frame{ flex:1 1 340px; max-width:600px; margin:0; }
+    .ring-viewer{ flex:1 1 340px; max-width:600px; min-width:0; }
+    .ring-tabs{
+        display:inline-flex; gap:4px; padding:4px; margin-bottom:0.75rem;
+        border:1px solid var(--line); border-radius:999px; background:#fff;
+    }
+    .ring-tab{
+        border:0; background:transparent; border-radius:999px; cursor:pointer;
+        padding:0.4rem 0.95rem; font-family:'Inter',sans-serif; font-size:0.75rem; font-weight:500; color:var(--ink-soft);
+        transition:background .2s ease, color .2s ease;
+    }
+    .ring-tab:hover{ color:var(--ink); }
+    .ring-tab.on{ background:var(--ink); color:#fff; }
+    .ring-tab:focus-visible{ outline:2px solid var(--ring-accent); outline-offset:2px; }
     #ring-frame{
-        background:radial-gradient(ellipse at 50% 35%, #2a2e38 0%, #14161c 75%);
-        cursor:grab;
+        position:relative; width:100%; aspect-ratio:4/3; min-height:380px;
+        border-radius:20px; overflow:hidden; border:1px solid var(--line); background:#fff;
+        box-shadow:0 18px 36px rgba(32,35,43,0.06);
     }
-    #ring-frame.dragging{ cursor:grabbing; }
-    #ring-canvas{ display:block; width:100%; height:100%; touch-action:none; }
-    .ring-hint{
-        position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
-        font-family:'Inter',sans-serif; font-size:0.62rem; letter-spacing:0.06em; text-transform:uppercase;
-        color:rgba(255,255,255,0.55); pointer-events:none; white-space:nowrap;
+    #ring-iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; display:block; }
+    .ring-loading{
+        position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+        font-size:0.72rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-soft);
+        background:#fff; transition:opacity .4s ease; pointer-events:none;
     }
-    .ring-finishes{
-        position:absolute; top:12px; right:12px; display:flex; align-items:center; gap:4px;
-        padding:4px 6px 4px 10px; border-radius:999px;
-        background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12);
-        backdrop-filter:blur(6px);
-    }
-    .finish-name{ font-size:0.6rem; letter-spacing:0.06em; text-transform:uppercase; color:rgba(255,255,255,0.65); margin-right:4px; min-width:62px; text-align:right; }
-    .finish-chip{ width:22px; height:22px; border-radius:50%; border:1.5px solid transparent; padding:3px; background:transparent; cursor:pointer; transition:border-color .2s ease; }
-    .finish-chip i{ display:block; width:100%; height:100%; border-radius:50%; }
-    .finish-chip.on{ border-color:rgba(255,255,255,0.85); }
-    .ring-fallback{ display:none; position:absolute; inset:0; align-items:center; justify-content:center; color:rgba(255,255,255,0.6); font-size:0.8rem; }
-    #ring-frame.no-webgl .ring-fallback{ display:flex; }
+    #ring-frame.loaded .ring-loading{ opacity:0; }
+    @media (max-width:640px){ #ring-frame{ min-height:440px; } }
+    .ring-caption{ margin-top:0.6rem; font-size:0.72rem; color:var(--ink-soft); text-align:center; }
+    .ring-caption b{ color:var(--ink); font-weight:600; }
+    .rp-ringmark{ display:inline-block; width:8px; height:8px; border:1.6px solid var(--ring-accent); border-radius:50%; margin-left:4px; vertical-align:-0.5px; }
 
     .ring-phone{
         width:212px; height:420px; flex-shrink:0; position:relative;
@@ -101,7 +106,8 @@
         padding:0.36rem 0.45rem; cursor:pointer; text-align:left; font-family:inherit;
         transition:background .25s ease, border-color .25s ease;
     }
-    .rp-row:hover{ background:#f6f4ef; }
+    .rp-row.rp-tap:hover{ background:#f6f4ef; }
+    .rp-row:not(.rp-tap){ cursor:default; }
     .rp-row.on{ background:#fbefe9; border-color:#f1cfc0; }
     .rp-dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
     .rp-name{ font-size:0.6rem; font-weight:500; color:var(--ink); flex:1; white-space:nowrap; }
@@ -274,17 +280,17 @@
         </ul>
 
         <div class="ring-stage">
-            <!-- 3D ring: curved display on the outside, optical sensors on the inside -->
-            <div id="ring-frame" class="visual-frame">
-                <canvas id="ring-canvas" aria-label="Interactive 3D model of the smart ring"></canvas>
-                <div class="ring-finishes" role="group" aria-label="Choose ring finish">
-                    <span class="finish-name" id="finish-name">Titanium</span>
-                    <button type="button" class="finish-chip on" data-finish="titanium" title="Titanium" aria-label="Titanium finish"><i style="background:linear-gradient(135deg,#f4f5f7,#9ba1a9);"></i></button>
-                    <button type="button" class="finish-chip" data-finish="graphite" title="Graphite" aria-label="Graphite finish"><i style="background:linear-gradient(135deg,#6b6f78,#1d1f24);"></i></button>
-                    <button type="button" class="finish-chip" data-finish="rose" title="Rose gold" aria-label="Rose gold finish"><i style="background:linear-gradient(135deg,#f6d3bd,#b9805e);"></i></button>
+            <!-- your two Three.js models (built into the smart-ring/ folder), switched with tabs -->
+            <div class="ring-viewer">
+                <div class="ring-tabs" role="tablist" aria-label="Smart ring views">
+                    <button type="button" role="tab" class="ring-tab on" aria-selected="true" data-page="ring" data-src="smart-ring/index.html?embed">The ring</button>
+                    <button type="button" role="tab" class="ring-tab" aria-selected="false" data-page="demo" data-src="smart-ring/demo.html?embed">How it works</button>
                 </div>
-                <div class="ring-fallback">3D preview needs WebGL</div>
-                <span class="ring-hint">Drag to rotate &middot; Simulated data</span>
+                <div id="ring-frame">
+                    <iframe id="ring-iframe" src="smart-ring/index.html?embed" title="Interactive 3D model of the smart ring" loading="lazy"></iframe>
+                    <div class="ring-loading">Loading 3D model&hellip;</div>
+                </div>
+                <p class="ring-caption" id="ring-caption">Drag to rotate &middot; tap <b>Steps</b> or <b>Heart rate</b> in the app to show it on the ring</p>
             </div>
 
             <!-- companion app: same live readings, tap a metric to push it to the ring -->
@@ -294,7 +300,7 @@
                 <div class="rp-head">
                     <div>
                         <div class="rp-title">My Ring</div>
-                        <div class="rp-sub"><span class="rp-live"></span>Connected &middot; synced now</div>
+                        <div class="rp-sub"><span class="rp-live"></span><span id="rp-sync">Connected &middot; synced now</span></div>
                     </div>
                     <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true">
                         <ellipse cx="13" cy="13" rx="10" ry="10" fill="none" stroke="#20232b" stroke-width="3.2"/>
@@ -310,7 +316,7 @@
                     <div class="rp-risk-label"><b id="rp-risk-level" style="color:#15803d;">Low</b> risk &middot; AI prediction</div>
                 </div>
                 <div class="rp-list" id="rp-list"></div>
-                <div class="rp-foot">Tap a metric to show it on your ring</div>
+                <div class="rp-foot" id="rp-foot">Tap <span class="rp-ringmark"></span> to show it on your ring</div>
             </div>
         </div>
 
@@ -481,31 +487,21 @@
 
 </main>
 
-<script type="importmap">
-{
-    "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-}
-</script>
-
 <script>
-/* ================= 01 — Smart Ring: shared (simulated) vitals for the ring display + companion app ================= */
+/* ================= 01 — Smart Ring: companion app + your two 3D models =================
+   The 3D models live in smart-ring/ (built from the my-3d-model project) and load in an iframe.
+   Page <-> model messages (same origin only):
+     ring  -> page : {type:'ring:ready'}                     viewer finished loading
+     page  -> ring : {type:'ring:show', icon, digits}        put a reading on the LED display
+     demo  -> page : {type:'ring:state', icon, digits}       what the hand demo's ring is showing
+     page  -> demo : {type:'ring:goto', chapter}             jump to a chapter ('steps', 'heart', ...)
+*/
 window.RingDemo = (function(){
-    var PAGES = [
-        {key:'time', label:'TIME',         unit:''},
-        {key:'hr',   label:'HEART RATE',   unit:'bpm'},
-        {key:'spo2', label:'BLOOD OXYGEN', unit:'%'},
-        {key:'hrv',  label:'HRV',          unit:'ms'},
-        {key:'temp', label:'SKIN TEMP',    unit:'\u00B0C'},
-        {key:'resp', label:'BREATH RATE',  unit:'/min'}
-    ];
-    // [min, max, resting mean] — plausible resting ranges for a healthy adult
-    var RANGES = { hr:[62,80,70], spo2:[96,99.4,98], hrv:[42,68,56], temp:[36.2,36.8,36.5], resp:[13,17.5,15] };
+    // [min, max, resting mean] — plausible resting ranges for a healthy adult (simulated)
+    var RANGES = { hr:[62,80,71], spo2:[96,99.4,98], temp:[36.2,36.8,36.5] };
     var HIST = 24;
-    var state = { page:0, changedAt:performance.now(), vitals:{}, history:{}, risk:12, holdUntil:0 };
-    var pageFns = [], tickFns = [];
+    var state = { vitals:{ steps:23850 }, history:{ steps:[] }, risk:12 };
+    var tickFns = [];
 
     function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
     function walk(k){
@@ -513,93 +509,113 @@ window.RingDemo = (function(){
         var v = state.vitals[k] + (Math.random() - 0.5) * span * 0.16 + (r[2] - state.vitals[k]) * 0.1;
         state.vitals[k] = clamp(v, r[0], r[1]);
     }
+    function push(k){
+        var h = state.history[k];
+        h.push(state.vitals[k]);
+        if(h.length > HIST) h.shift();
+    }
     Object.keys(RANGES).forEach(function(k){
         state.vitals[k] = RANGES[k][2];
         state.history[k] = [];
-        for(var i = 0; i < HIST; i++){ walk(k); state.history[k].push(state.vitals[k]); }
+        for(var i = 0; i < HIST; i++){ walk(k); push(k); }
     });
+    for(var i = 0; i < HIST; i++){ state.vitals.steps -= 3; }
+    for(var j = 0; j < HIST; j++){ state.vitals.steps += 3; push('steps'); }
 
     // stand-in for the AI model output: deviation from resting baselines -> 0–100 score
     function computeRisk(){
         var v = state.vitals;
-        var s = 6 + Math.abs(v.hr - 68) * 0.55 + (98.5 - v.spo2) * 3.2 + Math.max(0, 55 - v.hrv) * 0.35
-              + Math.abs(v.temp - 36.5) * 9 + Math.abs(v.resp - 15) * 1.2;
+        var s = 6 + Math.abs(v.hr - 68) * 0.55 + (98.5 - v.spo2) * 3.2 + Math.abs(v.temp - 36.5) * 9;
         return Math.round(clamp(s, 3, 40));
     }
     state.risk = computeRisk();
 
     setInterval(function(){
-        Object.keys(RANGES).forEach(function(k){
-            walk(k);
-            var h = state.history[k];
-            h.push(state.vitals[k]);
-            if(h.length > HIST) h.shift();
-        });
+        Object.keys(RANGES).forEach(function(k){ walk(k); push(k); });
+        state.vitals.steps += Math.floor(Math.random() * 3);
+        push('steps');
         state.risk = computeRisk();
         tickFns.forEach(function(fn){ fn(state); });
     }, 1600);
 
-    function setPage(i, manual){
-        state.page = i;
-        state.changedAt = performance.now();
-        if(manual) state.holdUntil = performance.now() + 9000;
-        pageFns.forEach(function(fn){ fn(i); });
-    }
-    setInterval(function(){
-        if(performance.now() < state.holdUntil) return;
-        setPage((state.page + 1) % PAGES.length, false);
-    }, 3200);
-
     return {
-        PAGES: PAGES, state: state, setPage: setPage,
-        onPage: function(fn){ pageFns.push(fn); },
+        state: state,
+        setVital: function(k, v){ state.vitals[k] = v; push(k); state.risk = computeRisk(); tickFns.forEach(function(fn){ fn(state); }); },
         onTick: function(fn){ tickFns.push(fn); }
     };
 })();
 
-/* ---------- companion app mockup ---------- */
 (function(){
     var demo = window.RingDemo;
     var list = document.getElementById('rp-list');
-    if(!demo || !list) return;
+    var iframe = document.getElementById('ring-iframe');
+    var frame = document.getElementById('ring-frame');
+    if(!demo || !list || !iframe) return;
 
+    // ring: icon the ring's LED display uses; chapter: hand-demo chapter that explains it
     var META = {
-        hr:   {name:'Heart rate',   color:'#e0523a'},
-        spo2: {name:'Blood oxygen', color:'#2f7fd6'},
-        hrv:  {name:'HRV',          color:'#7a5bd6'},
-        temp: {name:'Skin temp',    color:'#d98a1c'},
-        resp: {name:'Breath rate',  color:'#0f9a82'}
+        steps: { name:'Steps today',  unit:'',    color:'#16a34a', ring:'steps', chapter:'steps' },
+        hr:    { name:'Heart rate',   unit:'bpm', color:'#e0523a', ring:'heart', chapter:'heart' },
+        spo2:  { name:'Blood oxygen', unit:'%',   color:'#2f7fd6' },
+        temp:  { name:'Skin temp',    unit:'°C', color:'#d98a1c' },
+        sleep: { name:'Sleep',        unit:'',    color:'#6e8bff', fixed:'7h 32m' }
     };
+    var ORDER = ['steps','hr','spo2','temp','sleep'];
     var rows = {};
+    var page = 'ring';     // which model is in the frame
+    var focus = 'hr';      // metric the phone is pushing to the ring
 
-    demo.PAGES.forEach(function(p, i){
-        if(!META[p.key]) return;
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'rp-row';
-        b.setAttribute('aria-label', 'Show ' + META[p.key].name + ' on the ring');
-        b.innerHTML =
-            '<span class="rp-dot" style="background:' + META[p.key].color + '"></span>' +
-            '<span class="rp-name">' + META[p.key].name + '</span>' +
+    ORDER.forEach(function(k){
+        var m = META[k];
+        var el = document.createElement(m.ring ? 'button' : 'div');
+        el.className = 'rp-row' + (m.ring ? ' rp-tap' : '');
+        if(m.ring){ el.type = 'button'; el.setAttribute('aria-label', 'Show ' + m.name + ' on the ring'); }
+        el.innerHTML =
+            '<span class="rp-dot" style="background:' + m.color + '"></span>' +
+            '<span class="rp-name">' + m.name + (m.ring ? '<span class="rp-ringmark" aria-hidden="true"></span>' : '') + '</span>' +
             '<svg class="rp-spark" viewBox="0 0 40 14" preserveAspectRatio="none" aria-hidden="true">' +
-                '<polyline fill="none" stroke="' + META[p.key].color + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points=""/>' +
+                '<polyline fill="none" stroke="' + m.color + '" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" points="' +
+                (m.fixed ? '0,4 6,4 6,10 13,10 13,6 20,6 20,12 27,12 27,5 34,5 34,9 40,9' : '') + '"/>' +
             '</svg>' +
-            '<span class="rp-val"><b></b><small>' + p.unit + '</small></span>';
-        b.addEventListener('click', function(){ demo.setPage(i, true); });
-        list.appendChild(b);
-        rows[p.key] = { el:b, val:b.querySelector('b'), line:b.querySelector('polyline') };
+            '<span class="rp-val"><b>' + (m.fixed || '') + '</b><small>' + m.unit + '</small></span>';
+        if(m.ring) el.addEventListener('click', function(){ choose(k); });
+        list.appendChild(el);
+        rows[k] = { el:el, val:el.querySelector('b'), line:el.querySelector('polyline') };
     });
 
-    function fmt(k, v){ return k === 'temp' ? v.toFixed(1) : String(Math.round(v)); }
+    function fmt(k, v){
+        if(k === 'temp') return v.toFixed(1);
+        if(k === 'steps') return Math.round(v).toLocaleString('en-US');
+        return String(Math.round(v));
+    }
+    function send(msg){
+        try{ if(iframe.contentWindow) iframe.contentWindow.postMessage(msg, location.origin); }catch(e){}
+    }
+    function highlight(k){
+        Object.keys(rows).forEach(function(r){ rows[r].el.classList.toggle('on', r === k); });
+    }
+    function pushToRing(){
+        if(page !== 'ring') return;
+        send({ type:'ring:show', icon:META[focus].ring, digits:String(Math.round(demo.state.vitals[focus])) });
+    }
+    function choose(k){
+        focus = k;
+        highlight(k);
+        if(page === 'ring') pushToRing();
+        else send({ type:'ring:goto', chapter:META[k].chapter });
+    }
 
+    // gauge + rows
     var arc = document.getElementById('rp-gauge-arc');
     var riskNum = document.getElementById('rp-risk');
     var riskLevel = document.getElementById('rp-risk-level');
+    var syncEl = document.getElementById('rp-sync');
     var ARC_LEN = 150.8;
 
     function render(){
         var s = demo.state;
         Object.keys(rows).forEach(function(k){
+            if(META[k].fixed) return;
             var r = rows[k], h = s.history[k];
             r.val.textContent = fmt(k, s.vitals[k]);
             var mn = Math.min.apply(null, h), mx = Math.max.apply(null, h), rng = (mx - mn) || 1;
@@ -608,18 +624,61 @@ window.RingDemo = (function(){
             }).join(' '));
         });
         var risk = s.risk;
-        var color = risk < 25 ? '#16a34a' : (risk < 50 ? '#d97706' : '#dc2626');
         arc.style.strokeDashoffset = (ARC_LEN * (1 - risk / 100)).toFixed(1);
-        arc.setAttribute('stroke', color);
+        arc.setAttribute('stroke', risk < 25 ? '#16a34a' : (risk < 50 ? '#d97706' : '#dc2626'));
         riskNum.textContent = risk;
         riskLevel.textContent = risk < 25 ? 'Low' : (risk < 50 ? 'Moderate' : 'High');
         riskLevel.style.color = risk < 25 ? '#15803d' : (risk < 50 ? '#b45309' : '#b91c1c');
     }
+    demo.onTick(function(){ render(); pushToRing(); });
 
-    function highlight(i){
-        var key = demo.PAGES[i].key;
-        Object.keys(rows).forEach(function(k){ rows[k].el.classList.toggle('on', k === key); });
-    }
+    // messages from the model in the iframe
+    window.addEventListener('message', function(e){
+        if(e.origin !== location.origin || e.source !== iframe.contentWindow) return;
+        var d = e.data || {};
+        if(d.type === 'ring:ready'){ frame.classList.add('loaded'); pushToRing(); }
+        if(d.type === 'ring:state' && page === 'demo'){
+            frame.classList.add('loaded');
+            var n = parseInt(d.digits, 10);
+            if(d.icon === 'sync'){
+                syncEl.textContent = n >= 100 ? 'Connected · synced just now' : 'Syncing… ' + (isNaN(n) ? 0 : n) + '%';
+                highlight(null);
+                return;
+            }
+            syncEl.textContent = 'Connected · synced now';
+            var k = d.icon === 'heart' ? 'hr' : 'steps';
+            if(!isNaN(n)) demo.setVital(k, n);   // the phone mirrors what the ring shows
+            highlight(k);
+        }
+    });
+    iframe.addEventListener('load', function(){ setTimeout(function(){ frame.classList.add('loaded'); }, 1200); });
+
+    // tabs: swap which model is in the frame (only one WebGL scene runs at a time)
+    var tabs = document.querySelectorAll('.ring-tab');
+    var caption = document.getElementById('ring-caption');
+    var CAPTIONS = {
+        ring: 'Drag to rotate &middot; tap <b>Steps</b> or <b>Heart rate</b> in the app to show it on the ring',
+        demo: 'Tap <b>Steps</b> or <b>Heart rate</b> in the app to jump to that chapter &middot; drag to look around'
+    };
+    var FOOT = { ring:'to show it on your ring', demo:'to see how the ring measures it' };
+    var foot = document.getElementById('rp-foot');
+    tabs.forEach(function(t){
+        t.addEventListener('click', function(){
+            if(t.dataset.page === page) return;
+            page = t.dataset.page;
+            tabs.forEach(function(x){
+                var on = x === t;
+                x.classList.toggle('on', on);
+                x.setAttribute('aria-selected', on ? 'true' : 'false');
+            });
+            frame.classList.remove('loaded');
+            iframe.src = t.dataset.src;
+            caption.innerHTML = CAPTIONS[page];
+            foot.innerHTML = 'Tap <span class="rp-ringmark"></span> ' + FOOT[page];
+            syncEl.textContent = 'Connected · synced now';
+            highlight(page === 'ring' ? focus : null);
+        });
+    });
 
     var clock = document.getElementById('rp-clock');
     function tickClock(){
@@ -627,534 +686,10 @@ window.RingDemo = (function(){
         clock.textContent = d.getHours() + ':' + ('0' + d.getMinutes()).slice(-2);
     }
 
-    demo.onTick(render);
-    demo.onPage(highlight);
     render();
-    highlight(demo.state.page);
+    highlight(focus);
     tickClock();
     setInterval(tickClock, 10000);
-})();
-</script>
-
-<script type="module">
-/* ================= 01 — Smart Ring: 3D product viewer ================= */
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
-
-(function(){
-    const frame = document.getElementById('ring-frame');
-    const canvas = document.getElementById('ring-canvas');
-    if(!frame || !canvas) return;
-
-    const demo = window.RingDemo || null;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    let renderer;
-    try{
-        renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:'high-performance' });
-    }catch(err){
-        frame.classList.add('no-webgl');
-        return;
-    }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(34, 1.6, 0.1, 100);
-    camera.position.set(0, 1.0, 3.55);
-
-    function resize(){
-        const w = frame.clientWidth, h = frame.clientHeight;
-        if(!w || !h) return;
-        renderer.setSize(w, h, false);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-    }
-    resize();
-    if('ResizeObserver' in window){ new ResizeObserver(resize).observe(frame); }
-    else { window.addEventListener('resize', resize); }
-
-    // studio reflections — metals need an environment to look like metal
-    const pmrem = new THREE.PMREMGenerator(renderer);
-    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
-
-    scene.add(new THREE.AmbientLight(0xffffff, 0.25));
-    const key = new THREE.DirectionalLight(0xffffff, 2.0);
-    key.position.set(3, 4, 3);
-    scene.add(key);
-    const fill = new THREE.DirectionalLight(0xbcd7ff, 0.8);
-    fill.position.set(-4, 1.5, -2);
-    scene.add(fill);
-    const rim = new THREE.DirectionalLight(0xffffff, 1.0);
-    rim.position.set(-1, -2, 3);
-    scene.add(rim);
-
-    // ---------- dimensions: a flat, comfort-fit band (not a donut) ----------
-    const R_OUT = 1.0;     // outer radius at the crown
-    const R_IN  = 0.87;    // inner radius
-    const HALF  = 0.29;    // half of the band width
-    const EDGE  = 0.05;    // edge rounding radius
-    const DOME  = 0.022;   // how much the outer face domes
-    const Y_E   = HALF - EDGE;
-
-    function domeX(y){ return R_OUT - DOME * (y / HALF) * (y / HALF); }
-    const R_EDGE = domeX(Y_E);
-
-    function shellProfile(){
-        const pts = [], seg = 12, V = (x, y) => new THREE.Vector2(x, y);
-        for(let i = 0; i <= seg; i++){ // inner-top corner
-            const a = Math.PI - (Math.PI / 2) * i / seg;
-            pts.push(V(R_IN + EDGE + EDGE * Math.cos(a), Y_E + EDGE * Math.sin(a)));
-        }
-        for(let i = 1; i <= seg; i++){ // outer-top corner
-            const a = Math.PI / 2 - (Math.PI / 2) * i / seg;
-            pts.push(V(R_EDGE - EDGE + EDGE * Math.cos(a), Y_E + EDGE * Math.sin(a)));
-        }
-        const dn = 28;
-        for(let i = 1; i < dn; i++){ // domed outer face
-            const y = Y_E - 2 * Y_E * i / dn;
-            pts.push(V(domeX(y), y));
-        }
-        for(let i = 0; i <= seg; i++){ // outer-bottom corner
-            const a = -(Math.PI / 2) * i / seg;
-            pts.push(V(R_EDGE - EDGE + EDGE * Math.cos(a), -Y_E + EDGE * Math.sin(a)));
-        }
-        for(let i = 1; i <= seg; i++){ // inner-bottom corner
-            const a = -Math.PI / 2 - (Math.PI / 2) * i / seg;
-            pts.push(V(R_IN + EDGE + EDGE * Math.cos(a), -Y_E + EDGE * Math.sin(a)));
-        }
-        return pts;
-    }
-
-    // a strip that hugs the domed outer face (used for the display glass + pixels)
-    function stripProfile(offset, halfH, n){
-        const pts = [];
-        for(let i = 0; i <= n; i++){
-            const y = -halfH + 2 * halfH * i / n;
-            pts.push(new THREE.Vector2(domeX(y) + offset, y));
-        }
-        return pts;
-    }
-
-    // fine circumferential brushing, fed in as a roughness map
-    function brushedTexture(){
-        const c = document.createElement('canvas');
-        c.width = 1024; c.height = 128;
-        const g = c.getContext('2d');
-        g.fillStyle = 'rgb(214,214,214)';
-        g.fillRect(0, 0, c.width, c.height);
-        for(let i = 0; i < 900; i++){
-            const y = Math.random() * c.height;
-            const x = Math.random() * c.width;
-            const w = 80 + Math.random() * 500;
-            const hgt = 0.6 + Math.random() * 0.8;
-            const v = (170 + Math.random() * 85) | 0;
-            g.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',0.35)';
-            g.fillRect(x, y, w, hgt);
-            if(x + w > c.width) g.fillRect(x - c.width, y, w, hgt);
-        }
-        const t = new THREE.CanvasTexture(c);
-        t.wrapS = t.wrapT = THREE.RepeatWrapping;
-        t.repeat.set(3, 1);
-        return t;
-    }
-
-    function glowTexture(){
-        const c = document.createElement('canvas');
-        c.width = c.height = 64;
-        const g = c.getContext('2d');
-        const grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-        grd.addColorStop(0, 'rgba(255,255,255,1)');
-        grd.addColorStop(0.35, 'rgba(255,255,255,0.35)');
-        grd.addColorStop(1, 'rgba(255,255,255,0)');
-        g.fillStyle = grd;
-        g.fillRect(0, 0, 64, 64);
-        return new THREE.CanvasTexture(c);
-    }
-
-    function roundedAlpha(w, h, r){
-        const c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        const g = c.getContext('2d');
-        g.fillStyle = '#000';
-        g.fillRect(0, 0, w, h);
-        g.fillStyle = '#fff';
-        const x = 3, y = 3, ww = w - 6, hh = h - 6;
-        g.beginPath();
-        g.moveTo(x + r, y);
-        g.arcTo(x + ww, y, x + ww, y + hh, r);
-        g.arcTo(x + ww, y + hh, x, y + hh, r);
-        g.arcTo(x, y + hh, x, y, r);
-        g.arcTo(x, y, x + ww, y, r);
-        g.closePath();
-        g.fill();
-        return new THREE.CanvasTexture(c);
-    }
-
-    // ---------- scene graph ----------
-    const root = new THREE.Group();   // gentle float
-    scene.add(root);
-    const ring = new THREE.Group();   // hero tilt: see the display and into the band
-    ring.rotation.x = 0.3;
-    ring.rotation.z = -0.05;
-    root.add(ring);
-
-    // outer shell
-    const FINISHES = {
-        titanium: { color:0xd6d9de, roughness:0.26, metalness:1.0,  name:'Titanium'  },
-        graphite: { color:0x3b3e45, roughness:0.32, metalness:0.95, name:'Graphite'  },
-        rose:     { color:0xe6b393, roughness:0.22, metalness:1.0,  name:'Rose gold' }
-    };
-    const shellMat = new THREE.MeshPhysicalMaterial({
-        color: FINISHES.titanium.color, metalness: 1, roughness: FINISHES.titanium.roughness,
-        roughnessMap: brushedTexture(), clearcoat: 0.3, clearcoatRoughness: 0.12,
-        side: THREE.DoubleSide
-    });
-    const targetColor = new THREE.Color(FINISHES.titanium.color);
-    let targetRough = FINISHES.titanium.roughness;
-
-    const shell = new THREE.Mesh(new THREE.LatheGeometry(shellProfile(), 192), shellMat);
-    ring.add(shell);
-
-    // inner lining: dark satin resin, where the sensors live
-    const liningMat = new THREE.MeshPhysicalMaterial({
-        color: 0x15171c, roughness: 0.38, metalness: 0.1,
-        clearcoat: 0.6, clearcoatRoughness: 0.25, side: THREE.BackSide
-    });
-    const lining = new THREE.Mesh(new THREE.CylinderGeometry(R_IN, R_IN, 2 * Y_E, 192, 1, true), liningMat);
-    ring.add(lining);
-
-    // ---------- curved display: black glass window + glowing pixels, both bent to the band ----------
-    const DISP_PHI = 1.0;    // arc length of the screen (radians)
-    const DISP_HALF = 0.17;  // half height across the band
-
-    const glassMat = new THREE.MeshPhysicalMaterial({
-        color: 0x05070a, metalness: 0.2, roughness: 0.08,
-        clearcoat: 1, clearcoatRoughness: 0.04,
-        alphaMap: roundedAlpha(512, 176, 44), transparent: true, side: THREE.DoubleSide
-    });
-    const glass = new THREE.Mesh(
-        new THREE.LatheGeometry(stripProfile(0.0016, DISP_HALF + 0.014, 12), 72, -DISP_PHI / 2 - 0.035, DISP_PHI + 0.07),
-        glassMat
-    );
-    glass.renderOrder = 1;
-    ring.add(glass);
-
-    const SW = 512, SH = 174, SCALE = 2;
-    const scr = document.createElement('canvas');
-    scr.width = SW * SCALE; scr.height = SH * SCALE;
-    const g = scr.getContext('2d');
-    g.scale(SCALE, SCALE);
-    const screenTex = new THREE.CanvasTexture(scr);
-    screenTex.colorSpace = THREE.SRGBColorSpace;
-    screenTex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-
-    const pixels = new THREE.Mesh(
-        new THREE.LatheGeometry(stripProfile(0.0032, DISP_HALF, 12), 72, -DISP_PHI / 2, DISP_PHI),
-        new THREE.MeshBasicMaterial({
-            map: screenTex, transparent: true, depthWrite: false, toneMapped: false,
-            blending: THREE.AdditiveBlending, side: THREE.DoubleSide
-        })
-    );
-    pixels.renderOrder = 2;
-    ring.add(pixels);
-
-    // ---------- optical sensors on the inside, opposite the display ----------
-    const resinMat = new THREE.MeshPhysicalMaterial({ color:0x0b0c10, roughness:0.16, metalness:0, clearcoat:1, clearcoatRoughness:0.06 });
-    const diodeMat = new THREE.MeshPhysicalMaterial({ color:0x0d1a3a, roughness:0.1, metalness:0.3, clearcoat:1 });
-    const goldMat  = new THREE.MeshStandardMaterial({ color:0xd4a857, roughness:0.3, metalness:1 });
-    const greenLedMat = new THREE.MeshBasicMaterial({ color:0x33ff88, toneMapped:false });
-    const redLedMat   = new THREE.MeshBasicMaterial({ color:0xff2a2a, toneMapped:false });
-    const glowTex = glowTexture();
-    const greenGlowMat = new THREE.SpriteMaterial({ map:glowTex, color:0x40ff90, blending:THREE.AdditiveBlending, transparent:true, depthWrite:false });
-    const redGlowMat   = new THREE.SpriteMaterial({ map:glowTex, color:0xff3030, blending:THREE.AdditiveBlending, transparent:true, depthWrite:false, opacity:0.4 });
-
-    const BUMP_R = 0.078, BUMP_SY = 0.72, BUMP_SZ = 0.34;
-    const bumpGeo = new THREE.SphereGeometry(BUMP_R, 40, 20);
-    function onBump(x, y){ // depth of the bump's surface at (x, y), in the pivot's local space
-        const k = 1 - (x / BUMP_R) ** 2 - (y / (BUMP_R * BUMP_SY)) ** 2;
-        return R_IN - BUMP_R * BUMP_SZ * Math.sqrt(Math.max(k, 0)) - 0.0022;
-    }
-    function sensorPivot(phi){
-        const p = new THREE.Group();
-        p.rotation.y = phi;
-        const bump = new THREE.Mesh(bumpGeo, resinMat);
-        bump.scale.set(1, BUMP_SY, BUMP_SZ);
-        bump.position.z = R_IN;
-        p.add(bump);
-        ring.add(p);
-        return p;
-    }
-    function addFlat(pivot, geo, mat, x, y){
-        const m = new THREE.Mesh(geo, mat);
-        m.position.set(x, y, onBump(x, y));
-        m.rotation.y = Math.PI; // face the finger (ring centre)
-        pivot.add(m);
-        return m;
-    }
-    function addGlow(pivot, mat, x, y, size){
-        const s = new THREE.Sprite(mat);
-        s.position.set(x, y, onBump(x, y) - 0.006);
-        s.scale.setScalar(size);
-        pivot.add(s);
-        return s;
-    }
-
-    const ledGeo = new THREE.CircleGeometry(0.009, 24);
-    const pdGeo  = new THREE.PlaneGeometry(0.024, 0.024);
-    const tempGeo = new THREE.CircleGeometry(0.008, 24);
-
-    const podL = sensorPivot(Math.PI - 0.3);  // photodiode + temperature
-    addFlat(podL, pdGeo, diodeMat, 0, 0.009);
-    addFlat(podL, tempGeo, goldMat, 0, -0.024);
-
-    const podC = sensorPivot(Math.PI);        // green PPG LEDs + red/IR LED
-    addFlat(podC, ledGeo, greenLedMat, -0.028, 0.012);
-    addFlat(podC, ledGeo, greenLedMat,  0.028, 0.012);
-    addFlat(podC, ledGeo, redLedMat,    0, -0.022);
-    const greenGlows = [
-        addGlow(podC, greenGlowMat, -0.028, 0.012, 0.08),
-        addGlow(podC, greenGlowMat,  0.028, 0.012, 0.08)
-    ];
-    addGlow(podC, redGlowMat, 0, -0.022, 0.06);
-
-    const podR = sensorPivot(Math.PI + 0.3);  // second photodiode
-    addFlat(podR, pdGeo, diodeMat, 0, 0);
-
-    // green light spilling onto the inner lining with each heartbeat
-    const ledLight = new THREE.PointLight(0x33ff88, 0, 0.9, 2);
-    ledLight.position.set(0, 0, R_IN - 0.18);
-    podC.add(ledLight);
-
-    // soft contact shadow under the ring
-    const shadowCanvas = document.createElement('canvas');
-    shadowCanvas.width = shadowCanvas.height = 128;
-    const sg = shadowCanvas.getContext('2d');
-    const sgrd = sg.createRadialGradient(64, 64, 0, 64, 64, 64);
-    sgrd.addColorStop(0, 'rgba(0,0,0,0.6)');
-    sgrd.addColorStop(0.5, 'rgba(0,0,0,0.22)');
-    sgrd.addColorStop(1, 'rgba(0,0,0,0)');
-    sg.fillStyle = sgrd;
-    sg.fillRect(0, 0, 128, 128);
-    const shadow = new THREE.Mesh(
-        new THREE.PlaneGeometry(2.6, 2.6),
-        new THREE.MeshBasicMaterial({ map:new THREE.CanvasTexture(shadowCanvas), transparent:true, depthWrite:false })
-    );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = -0.82;
-    scene.add(shadow);
-
-    // ---------- display content (redrawn every frame; synced with the app) ----------
-    const FALLBACK_PAGES = [{ key:'time', label:'TIME', unit:'' }];
-    const wave = new Float32Array(200);
-    let waveHead = 0;
-    const pad = n => String(n).padStart(2, '0');
-    const fmt = (k, v) => k === 'temp' ? v.toFixed(1) : String(Math.round(v));
-    const DAYS = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-    const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-
-    function drawWave(x, y, w, h){
-        const n = wave.length;
-        g.lineWidth = 2.4; g.lineJoin = 'round'; g.lineCap = 'round';
-        g.strokeStyle = 'rgba(120,255,190,0.95)';
-        g.shadowColor = 'rgba(80,255,170,0.9)';
-        g.beginPath();
-        for(let i = 0; i < n; i++){
-            const v = wave[(waveHead + i) % n];
-            const px = x + w * i / (n - 1), py = y + h - v * h * 0.9;
-            if(i) g.lineTo(px, py); else g.moveTo(px, py);
-        }
-        g.stroke();
-        const last = wave[(waveHead + n - 1) % n];
-        g.fillStyle = '#d9ffe9';
-        g.beginPath();
-        g.arc(x + w, y + h - last * h * 0.9, 3.4, 0, Math.PI * 2);
-        g.fill();
-    }
-
-    function drawSpark(hist, x, y, w, h){
-        if(!hist || hist.length < 2) return;
-        const mn = Math.min(...hist), mx = Math.max(...hist), rng = (mx - mn) || 1;
-        g.strokeStyle = 'rgba(140,220,255,0.18)';
-        g.lineWidth = 1;
-        g.beginPath(); g.moveTo(x, y + h); g.lineTo(x + w, y + h); g.stroke();
-        g.lineWidth = 2.2; g.lineJoin = 'round'; g.lineCap = 'round';
-        g.strokeStyle = 'rgba(160,228,255,0.95)';
-        g.beginPath();
-        hist.forEach((v, i) => {
-            const px = x + w * i / (hist.length - 1), py = y + h - (v - mn) / rng * h * 0.85;
-            if(i) g.lineTo(px, py); else g.moveTo(px, py);
-        });
-        g.stroke();
-        const lv = hist[hist.length - 1];
-        g.fillStyle = '#eafcff';
-        g.beginPath();
-        g.arc(x + w, y + h - (lv - mn) / rng * h * 0.85, 3.2, 0, Math.PI * 2);
-        g.fill();
-    }
-
-    function drawTimeSide(x, y, w, h){
-        const d = new Date();
-        g.textAlign = 'right';
-        g.fillStyle = 'rgba(140,220,255,0.9)';
-        g.font = '600 17px Inter, sans-serif';
-        g.fillText(DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()], x + w, y + 28);
-        // battery
-        const bx = x + w - 44, by = y + 46;
-        g.strokeStyle = 'rgba(140,220,255,0.85)';
-        g.lineWidth = 1.6;
-        g.strokeRect(bx, by, 34, 16);
-        g.fillStyle = 'rgba(140,220,255,0.85)';
-        g.fillRect(bx + 35, by + 5, 3, 6);
-        g.fillStyle = 'rgba(120,255,190,0.9)';
-        g.fillRect(bx + 3, by + 3, 28 * 0.82 - 1, 10);
-        g.fillStyle = 'rgba(140,220,255,0.8)';
-        g.font = '500 14px Inter, sans-serif';
-        g.fillText('82%', bx - 8, by + 13);
-        g.textAlign = 'left';
-    }
-
-    function drawScreen(now){
-        const pages = demo ? demo.PAGES : FALLBACK_PAGES;
-        const st = demo ? demo.state : null;
-        const idx = st ? st.page : 0;
-        const page = pages[idx];
-        const fade = st ? Math.min(1, (now - st.changedAt) / 380) : 1;
-
-        g.clearRect(0, 0, SW, SH);
-        g.save();
-        g.globalAlpha = fade;
-        g.translate(0, (1 - fade) * 10);
-        g.shadowColor = 'rgba(110,205,255,0.85)';
-        g.shadowBlur = 12;
-        g.textBaseline = 'alphabetic';
-        g.textAlign = 'left';
-
-        g.fillStyle = 'rgba(140,220,255,0.9)';
-        g.font = '600 16px Inter, sans-serif';
-        g.fillText(page.label, 36, 46);
-
-        let value;
-        if(page.key === 'time'){
-            const d = new Date();
-            value = pad(d.getHours()) + ':' + pad(d.getMinutes());
-        } else {
-            value = fmt(page.key, st.vitals[page.key]);
-        }
-        g.fillStyle = '#effdff';
-        g.font = '700 62px Inter, sans-serif';
-        g.fillText(value, 33, 116);
-        if(page.unit){
-            const w = g.measureText(value).width;
-            g.font = '500 19px Inter, sans-serif';
-            g.fillStyle = 'rgba(140,220,255,0.85)';
-            g.fillText(page.unit, 33 + w + 8, 116);
-        }
-
-        const gx = 318, gy = 40, gw = 160, gh = 72;
-        if(page.key === 'hr') drawWave(gx, gy, gw, gh);
-        else if(page.key === 'time') drawTimeSide(gx, gy, gw, gh);
-        else drawSpark(st.history[page.key], gx, gy, gw, gh);
-        g.restore();
-
-        // page dots
-        const n = pages.length, gap = 12, sx = SW / 2 - (n - 1) * gap / 2;
-        for(let i = 0; i < n; i++){
-            g.beginPath();
-            g.fillStyle = i === idx ? 'rgba(200,240,255,0.95)' : 'rgba(140,220,255,0.28)';
-            g.arc(sx + i * gap, 150, i === idx ? 3 : 2.2, 0, Math.PI * 2);
-            g.fill();
-        }
-        screenTex.needsUpdate = true;
-    }
-
-    // PPG pulse shape: systolic peak + smaller diastolic bump
-    function ppg(p){
-        return Math.exp(-(((p - 0.18) / 0.07) ** 2)) + 0.4 * Math.exp(-(((p - 0.45) / 0.09) ** 2));
-    }
-
-    // ---------- finish picker ----------
-    const finishName = document.getElementById('finish-name');
-    const chips = frame.querySelectorAll('.finish-chip');
-    chips.forEach(btn => {
-        btn.setAttribute('aria-pressed', btn.classList.contains('on') ? 'true' : 'false');
-        btn.addEventListener('click', e => {
-            e.stopPropagation();
-            const f = FINISHES[btn.dataset.finish];
-            if(!f) return;
-            targetColor.setHex(f.color);
-            targetRough = f.roughness;
-            shellMat.metalness = f.metalness;
-            chips.forEach(b => {
-                b.classList.toggle('on', b === btn);
-                b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
-            });
-            if(finishName) finishName.textContent = f.name;
-        });
-    });
-
-    // ---------- controls: drag to rotate; no wheel-zoom so the page still scrolls ----------
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, -0.1, 0);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.07;
-    controls.enablePan = false;
-    controls.enableZoom = false;
-    controls.minPolarAngle = 0.35;
-    controls.maxPolarAngle = 1.75;
-    controls.autoRotate = !reduceMotion;
-    controls.autoRotateSpeed = 1.4;
-
-    let idleTimer = null;
-    controls.addEventListener('start', () => {
-        frame.classList.add('dragging');
-        controls.autoRotate = false;
-        clearTimeout(idleTimer);
-    });
-    controls.addEventListener('end', () => {
-        frame.classList.remove('dragging');
-        if(!reduceMotion) idleTimer = setTimeout(() => { controls.autoRotate = true; }, 3500);
-    });
-
-    // only render while the viewer is on screen
-    let visible = true;
-    if('IntersectionObserver' in window){
-        new IntersectionObserver(entries => { visible = entries[0].isIntersecting; }, { threshold:0 }).observe(frame);
-    }
-
-    const clock = new THREE.Clock();
-    let beat = 0;
-    function tick(now){
-        requestAnimationFrame(tick);
-        const dt = Math.min(clock.getDelta(), 0.05);
-        if(!visible) return;
-
-        const hr = demo ? demo.state.vitals.hr : 70;
-        beat += dt * hr / 60;
-        const pulse = Math.min(1, ppg(beat % 1));
-        wave[waveHead] = pulse;
-        waveHead = (waveHead + 1) % wave.length;
-
-        const k = 0.22 + 0.78 * pulse;
-        greenLedMat.color.setRGB(0.05 + 0.25 * k, 0.1 + 0.9 * k, 0.08 + 0.5 * k);
-        greenGlowMat.opacity = 0.12 + 0.88 * pulse;
-        greenGlows.forEach(s => s.scale.setScalar(0.06 + 0.05 * pulse));
-        redGlowMat.opacity = 0.32 + 0.08 * Math.sin(now * 0.004);
-        ledLight.intensity = 0.02 + 0.2 * pulse;
-
-        shellMat.color.lerp(targetColor, 0.1);
-        shellMat.roughness += (targetRough - shellMat.roughness) * 0.1;
-
-        if(!reduceMotion) root.position.y = Math.sin(now * 0.0009) * 0.03;
-
-        drawScreen(now);
-        controls.update();
-        renderer.render(scene, camera);
-    }
-    requestAnimationFrame(tick);
 })();
 </script>
 
