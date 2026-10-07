@@ -108,7 +108,7 @@
 
         // Cinematic slightly-isometric Perspective Camera
         const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(-18, 12, 25);
+        camera.position.set(-8.5, 7.5, 18.5);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -128,6 +128,7 @@
         controls.maxDistance = 40;
         controls.minDistance = 10;
         controls.maxPolarAngle = Math.PI / 2 - 0.05; // Lock camera above ground
+        controls.target.set(0, 1.6, 0.4); // orbit around the pilot, not the floor
 
         // --- MATERIALS & LIGHTING ---
         // Soft ambient fill for clay/diorama look
@@ -249,173 +250,612 @@
         const interactables = [];
         const hitboxMat = new THREE.MeshBasicMaterial({ visible: false });
 
-        // A. CONTROL CENTER (Dashboard) - Extruded curved desk
-        const deskGroup = new THREE.Group();
-        deskGroup.position.set(0, 0.5, 3);
-        
-        // Pill-shaped Curved Desk Base using ExtrudeGeometry
-        const deskShape = new THREE.Shape();
-        deskShape.moveTo(-1.6, -0.7);
-        deskShape.lineTo(1.6, -0.7);
-        deskShape.absarc(1.6, 0, 0.7, -Math.PI/2, Math.PI/2, false);
-        deskShape.lineTo(-1.6, 0.7);
-        deskShape.absarc(-1.6, 0, 0.7, Math.PI/2, Math.PI*1.5, false);
-        
-        const extrudeSettings = { depth: 0.15, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.05, bevelThickness: 0.05 };
-        const deskBase = new THREE.Mesh(new THREE.ExtrudeGeometry(deskShape, extrudeSettings), matteMat(0xe2e8f0));
-        deskBase.rotation.x = Math.PI / 2;
-        deskBase.position.y = 1.1;
-        deskBase.castShadow = true; deskBase.receiveShadow = true;
-        
-        // Angled cyber-legs
-        const leg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.05, 1.2, 16), metalMat(0x64748b)); 
-        leg1.position.set(-1.4, 0.5, 0); leg1.rotation.z = Math.PI/8; leg1.castShadow=true;
-        const leg2 = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.05, 1.2, 16), metalMat(0x64748b)); 
-        leg2.position.set(1.4, 0.5, 0); leg2.rotation.z = -Math.PI/8; leg2.castShadow=true;
-        deskGroup.add(deskBase, leg1, leg2);
+        // A. THE PILOT'S STATION (About Me / Activities) - the alien, seated and working at the desk.
+        //    Local axes: y = 0 is the deck, +Z is the front of the desk (the side that faces the camera).
+        const STATION_SCALE = 1.35;
+        const stationMount = new THREE.Group(); // fixed placement + size on the deck
+        stationMount.position.set(0, 0.5, 1.0);
+        stationMount.rotation.y = -0.43; // turn the station to face the opening camera angle
+        stationMount.scale.setScalar(STATION_SCALE);
+        ufoGroup.add(stationMount);
+        const stationGroup = new THREE.Group(); // this is what grows slightly on hover
+        stationMount.add(stationGroup);
 
-        // Curved Ultra-wide Monitor
-        const screenGeo = new THREE.CylinderGeometry(1.8, 1.8, 0.9, 32, 1, true, -Math.PI/5, Math.PI/2.5);
-        const screenMat = new THREE.MeshBasicMaterial({ color: 0x3b82f6, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
-        const screen = new THREE.Mesh(screenGeo, screenMat);
-        screen.position.set(0, 1.7, -0.2);
-        
-        // Monitor Frame (Slightly larger cylinder)
-        const frameGeo = new THREE.CylinderGeometry(1.85, 1.85, 0.95, 32, 1, true, -Math.PI/4.8, Math.PI/2.4);
-        const frame = new THREE.Mesh(frameGeo, matteMat(0x0f172a));
-        frame.position.set(0, 1.7, -0.2);
-        frame.castShadow = true;
-        deskGroup.add(screen, frame);
-
-        // Holographic projector on desk
-        const holoBase = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.25, 0.1, 32), metalMat(0x475569));
-        holoBase.position.set(1.2, 1.2, 0.3);
-        deskGroup.add(holoBase);
-        holoBaseRef = holoBase; // Store for animation
-        
-        const holoLight = new THREE.PointLight(0x3b82f6, 1, 3);
-        holoLight.position.set(1.2, 1.5, 0.3);
-        deskGroup.add(holoLight);
-
-        ufoGroup.add(deskGroup);
-
-        const deskHitbox = new THREE.Mesh(new THREE.BoxGeometry(4.5, 3, 2.5), hitboxMat);
-        deskHitbox.position.copy(deskGroup.position);
-        deskHitbox.position.y += 1;
-        deskHitbox.userData = { target: 'about.html', title: 'ABOUT ME' };
-        ufoGroup.add(deskHitbox);
-        interactables.push(deskHitbox);
-
-
-        // B. THE ALIEN PILOT (Profile)
-        const pilotGroup = new THREE.Group();
-        pilotGroup.position.set(-4, 0.5, -2);
-        pilotGroup.rotation.y = Math.PI / 3;
-
-        // Ergonomic Captain's Chair (Curved)
-        const chairBase = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.6, 0.6, 32), matteMat(0x475569));
-        chairBase.position.y = 0.3; chairBase.castShadow = true;
-        const chairSeat = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.15, 32), matteMat(0x1e293b));
-        chairSeat.position.y = 0.65; chairSeat.castShadow = true;
-        const chairBack = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.2, 16, 32, Math.PI), matteMat(0x1e293b));
-        chairBack.position.set(0, 1.5, -0.9);
-        chairBack.rotation.y = Math.PI/2;
-        pilotGroup.add(chairBase, chairSeat, chairBack);
-
-        // Detailed Cute Alien Character
-        const alienSkin = matteMat(0x10b981); // Mint green
-        const suitMat = matteMat(0xf8fafc); // White spacesuit
-        const trimMat = metalMat(0xfab52b); // Gold accents
-
-        const charRig = new THREE.Group();
-        charRig.position.y = 1.025; // raised so the body's rounded base rests on the seat top, not inside it
-        
-        // Suit Body (Rounded Capsule-like via stacked shapes)
-        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.5, 0.8, 32), suitMat);
-        body.position.y = 0.6; body.castShadow = true;
-        const bodyTop = new THREE.Mesh(new THREE.SphereGeometry(0.45, 32, 16), suitMat);
-        bodyTop.position.y = 1.0; bodyTop.castShadow = true;
-        const bodyBot = new THREE.Mesh(new THREE.SphereGeometry(0.5, 32, 16), suitMat);
-        bodyBot.position.y = 0.2; bodyBot.castShadow = true;
-        charRig.add(body, bodyTop, bodyBot);
-
-        // Spacesuit Backpack
-        const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.4), metalMat(0x94a3b8));
-        backpack.position.set(0, 0.6, -0.6);
-        backpack.castShadow = true;
-        charRig.add(backpack);
-
-        // Arms
-        const armGeo = new THREE.CylinderGeometry(0.12, 0.1, 0.7, 16);
-        const armL = new THREE.Mesh(armGeo, suitMat);
-        armL.position.set(0.6, 0.6, 0.2); armL.rotation.x = Math.PI/3; armL.rotation.z = -Math.PI/8;
-        const armR = new THREE.Mesh(armGeo, suitMat);
-        armR.position.set(-0.6, 0.6, 0.2); armR.rotation.x = Math.PI/3; armR.rotation.z = Math.PI/8;
-        charRig.add(armL, armR);
-
-        // Suit Collar
-        const collar = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.1, 16, 32), trimMat);
-        collar.position.y = 1.1; collar.rotation.x = Math.PI/2;
-        charRig.add(collar);
-
-        // Head
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.55, 32, 32), alienSkin);
-        head.position.y = 1.6; head.castShadow = true;
-        charRig.add(head);
-
-        // Spacesuit Visor (Dark tinted glass band)
-        const visorMat = new THREE.MeshPhysicalMaterial({ color: 0x0f172a, metalness: 0.8, roughness: 0.1, clearcoat: 1.0 });
-        const visor = new THREE.Mesh(new THREE.SphereGeometry(0.57, 32, 16, 0, Math.PI*2, Math.PI/3.5, Math.PI/3), visorMat);
-        visor.position.y = 1.6;
-        visor.rotation.x = -Math.PI/8; // Tilt up slightly
-        charRig.add(visor);
-
-        // Cute Antennae — each is a group rooted exactly on the head's surface, oriented to
-        // point outward from the head center, with the stalk and glowing tip stacked along
-        // the group's own local axis. That guarantees the stalk always touches the skull and
-        // the tip always sits at the end of the stalk, no matter how it's angled.
-        const antMat = metalMat(0x64748b);
-        const headCenterLocal = new THREE.Vector3(0, 1.6, 0);
-        const headRadius = 0.55;
-
-        function makeAntenna(direction, length) {
-            const group = new THREE.Group();
-            const dir = direction.clone().normalize();
-            // Sink the root slightly into the head so there's no seam/gap at the base.
-            const root = headCenterLocal.clone().add(dir.clone().multiplyScalar(headRadius - 0.05));
-            group.position.copy(root);
-            group.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
-
-            const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.025, length, 12), antMat);
-            stalk.position.y = length / 2;
-            stalk.castShadow = true;
-
-            const tip = new THREE.Mesh(new THREE.SphereGeometry(0.08, 16, 16), new THREE.MeshBasicMaterial({ color: 0x3b82f6 }));
-            tip.position.y = length;
-
-            group.add(stalk, tip);
-            return group;
+        const UP = new THREE.Vector3(0, 1, 0);
+        const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+        // mesh helper: geometry + material at a position, casting shadows
+        function part(geo, mat, x = 0, y = 0, z = 0, shadow = true) {
+            const m = new THREE.Mesh(geo, mat);
+            m.position.set(x, y, z);
+            m.castShadow = shadow; m.receiveShadow = shadow;
+            return m;
+        }
+        // a capsule between two points (this three.js build has no CapsuleGeometry)
+        function capsule(a, b, r1, r2, mat) {
+            const g = new THREE.Group();
+            const d = new THREE.Vector3().subVectors(b, a);
+            const len = d.length();
+            const cyl = part(new THREE.CylinderGeometry(r2, r1, len, 20), mat);
+            cyl.position.copy(a).addScaledVector(d, 0.5);
+            cyl.quaternion.setFromUnitVectors(UP, d.clone().normalize());
+            g.add(cyl, part(new THREE.SphereGeometry(r1, 20, 14), mat, a.x, a.y, a.z), part(new THREE.SphereGeometry(r2, 20, 14), mat, b.x, b.y, b.z));
+            return g;
+        }
+        function canvasTexture(w, h, draw) {
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            const g = c.getContext('2d');
+            draw(g, w, h);
+            const t = new THREE.CanvasTexture(c);
+            t.encoding = THREE.sRGBEncoding;
+            return t;
         }
 
-        const ant1 = makeAntenna(new THREE.Vector3(0.45, 0.85, -0.2), 0.4);
-        const ant2 = makeAntenna(new THREE.Vector3(-0.45, 0.85, -0.2), 0.4);
-        charRig.add(ant1, ant2);
+        // ---------- materials ----------
+        const skinMat = new THREE.MeshStandardMaterial({ color: 0x34d399, roughness: 0.55, metalness: 0.0 });
+        const skinDarkMat = new THREE.MeshStandardMaterial({ color: 0x0f9f76, roughness: 0.6 });
+        const suitMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.75 });
+        const suitGreyMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.7 });
+        const rubberMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.85 });
+        const darkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.5, metalness: 0.4 });
+        const goldMat = new THREE.MeshStandardMaterial({ color: 0xfab52b, roughness: 0.3, metalness: 0.8 });
+        const steelMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.35, metalness: 0.75 });
+        const orangeMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.6 });
+        const eyeMat = new THREE.MeshPhysicalMaterial({ color: 0x05070d, roughness: 0.05, metalness: 0.2, clearcoat: 1.0, clearcoatRoughness: 0.03 });
+        const glowCyan = new THREE.MeshBasicMaterial({ color: 0x7dd3fc });
+        const glowBlue = new THREE.MeshBasicMaterial({ color: 0x3b82f6 });
 
-        pilotGroup.add(charRig);
-        ufoGroup.add(pilotGroup);
+        // ---------- chair: pedestal stool with a low back ----------
+        const chairGroup = new THREE.Group();
+        chairGroup.position.set(0, 0, -0.7);
+        chairGroup.add(
+            part(new THREE.CylinderGeometry(0.55, 0.62, 0.08, 40), steelMat, 0, 0.04, 0),
+            part(new THREE.CylinderGeometry(0.09, 0.12, 0.52, 20), steelMat, 0, 0.34, 0),
+            part(new THREE.CylinderGeometry(0.2, 0.1, 0.08, 24), darkMat, 0, 0.58, 0),
+            part(new THREE.CylinderGeometry(0.52, 0.48, 0.12, 40), rubberMat, 0, 0.66, 0)
+        );
+        const seatTrim = part(new THREE.TorusGeometry(0.52, 0.035, 12, 48), goldMat, 0, 0.71, 0);
+        seatTrim.rotation.x = Math.PI / 2;
+        const footRing = part(new THREE.TorusGeometry(0.36, 0.025, 10, 40), steelMat, 0, 0.2, 0);
+        footRing.rotation.x = Math.PI / 2;
+        // low lumbar rest: an arc of a cylinder behind the hips
+        const backRest = part(new THREE.CylinderGeometry(0.56, 0.56, 0.26, 32, 1, true, Math.PI - 0.85, 1.7), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85, side: THREE.DoubleSide }), 0, 0.88, 0);
+        const backRail = part(new THREE.TorusGeometry(0.56, 0.03, 10, 32, 1.7), goldMat, 0, 1.01, 0);
+        backRail.rotation.set(Math.PI / 2, 0, -Math.PI / 2 - 0.85);
+        chairGroup.add(seatTrim, footRing, backRest, backRail);
+        stationGroup.add(chairGroup);
 
-        // Pilot Hitbox
-        const pilotHitbox = new THREE.Mesh(new THREE.BoxGeometry(3, 4, 3), hitboxMat);
-        pilotHitbox.position.copy(pilotGroup.position);
-        pilotHitbox.position.y += 1.5;
-        pilotHitbox.userData = { target: 'research.html', title: 'RESEARCH' };
-        ufoGroup.add(pilotHitbox);
-        interactables.push(pilotHitbox);
+        // ---------- the alien ----------
+        // Local origin = the top of the seat. Everything about the character is built from here.
+        const alien = new THREE.Group();
+        alien.position.set(0, 0.72, -0.7);
+        stationGroup.add(alien);
+
+        // torso: one smooth lathe profile (hips -> waist -> chest -> shoulders -> neck)
+        const torsoGroup = new THREE.Group();
+        alien.add(torsoGroup);
+        const torsoProfile = [[0, 0.02], [0.3, 0.04], [0.4, 0.16], [0.42, 0.34], [0.4, 0.58], [0.37, 0.8], [0.31, 0.95], [0.25, 1.02], [0, 1.03]]
+            .map(p => new THREE.Vector2(p[0], p[1]));
+        torsoGroup.add(part(new THREE.LatheGeometry(torsoProfile, 40), suitMat));
+
+        // belt + buckle
+        const belt = part(new THREE.TorusGeometry(0.415, 0.04, 12, 48), rubberMat, 0, 0.33, 0);
+        belt.rotation.x = Math.PI / 2;
+        torsoGroup.add(belt, part(new THREE.BoxGeometry(0.13, 0.1, 0.05), goldMat, 0, 0.33, 0.44));
+        for (const sx of [-1, 1]) torsoGroup.add(part(new THREE.BoxGeometry(0.09, 0.12, 0.07), suitGreyMat, sx * 0.3, 0.3, 0.31)); // hip pouches
+
+        // chest control unit: bezel, tiny live screen, LEDs, dial
+        const chest = new THREE.Group();
+        chest.position.set(0, 0.68, 0.385);
+        chest.rotation.x = -0.1;
+        const chestScreenTex = canvasTexture(128, 64, (g, w, h) => {
+            g.fillStyle = '#031022'; g.fillRect(0, 0, w, h);
+            g.strokeStyle = '#38bdf8'; g.lineWidth = 3; g.beginPath();
+            const pts = [0, 40, 22, 40, 30, 28, 38, 50, 46, 10, 54, 46, 62, 40, 128, 40];
+            for (let i = 0; i < pts.length; i += 2) i ? g.lineTo(pts[i], pts[i + 1]) : g.moveTo(pts[i], pts[i + 1]);
+            g.stroke();
+        });
+        chest.add(
+            part(new THREE.BoxGeometry(0.36, 0.25, 0.06), darkMat),
+            part(new THREE.PlaneGeometry(0.2, 0.1), new THREE.MeshBasicMaterial({ map: chestScreenTex }), -0.055, 0.045, 0.032, false),
+            part(new THREE.CylinderGeometry(0.035, 0.035, 0.03, 20).rotateX(Math.PI / 2), goldMat, 0.115, 0.05, 0.035)
+        );
+        const chestLeds = [0xef4444, 0xfacc15, 0x22c55e, 0x38bdf8].map((c, i) => {
+            const led = part(new THREE.SphereGeometry(0.017, 12, 10), new THREE.MeshBasicMaterial({ color: c }), -0.125 + i * 0.05, -0.065, 0.032, false);
+            chest.add(led);
+            return led;
+        });
+        chest.add(part(new THREE.BoxGeometry(0.1, 0.025, 0.02), steelMat, 0.11, -0.065, 0.032, false));
+        torsoGroup.add(chest);
+
+        // mission patch on the chest (a small ringed planet)
+        const patch = new THREE.Group();
+        patch.position.set(0.21, 0.9, 0.275);
+        patch.rotation.set(-0.5, 0.55, 0);
+        const patchRing = part(new THREE.TorusGeometry(0.058, 0.01, 8, 28), goldMat, 0, 0, 0, false);
+        const patchOrbit = part(new THREE.TorusGeometry(0.04, 0.005, 6, 24), glowCyan, 0, 0, 0.012, false);
+        patchOrbit.rotation.x = 1.1;
+        patch.add(part(new THREE.CircleGeometry(0.055, 28), new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.6 }), 0, 0, 0, false), patchRing, patchOrbit,
+            part(new THREE.SphereGeometry(0.02, 12, 10), goldMat, 0, 0, 0.012, false));
+        torsoGroup.add(patch);
+
+        // suit seams down the sides (thin orange piping) and shoulder stripes
+        for (const sx of [-1, 1]) {
+            torsoGroup.add(capsule(V3(sx * 0.405, 0.42, 0.1), V3(sx * 0.365, 0.82, 0.08), 0.014, 0.014, orangeMat));
+        }
+
+        // life-support backpack: body, two tanks, vents, antenna with a blinking beacon
+        const pack = new THREE.Group();
+        pack.position.set(0, 0.62, -0.5);
+        pack.add(part(new THREE.BoxGeometry(0.58, 0.7, 0.26), suitGreyMat));
+        pack.add(part(new THREE.BoxGeometry(0.5, 0.08, 0.28), darkMat, 0, 0.2, 0), part(new THREE.BoxGeometry(0.5, 0.08, 0.28), darkMat, 0, -0.22, 0));
+        for (const sx of [-1, 1]) {
+            pack.add(capsule(V3(sx * 0.16, -0.24, -0.2), V3(sx * 0.16, 0.24, -0.2), 0.1, 0.1, steelMat));
+            const band = part(new THREE.TorusGeometry(0.102, 0.014, 8, 24), orangeMat, sx * 0.16, 0.06, -0.2);
+            band.rotation.x = Math.PI / 2;
+            pack.add(band, part(new THREE.CylinderGeometry(0.035, 0.035, 0.06, 14), goldMat, sx * 0.16, 0.37, -0.2));
+            // air hoses from the pack up to the helmet ring
+            const hose = new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(V3(sx * 0.2, 0.33, 0.02), V3(sx * 0.5, 0.62, 0.1), V3(sx * 0.46, 0.44, 0.34)), 20, 0.028, 10), rubberMat);
+            hose.castShadow = true;
+            pack.add(hose);
+        }
+        pack.add(part(new THREE.CylinderGeometry(0.008, 0.012, 0.42, 8), steelMat, 0.22, 0.56, 0.02));
+        const beacon = part(new THREE.SphereGeometry(0.03, 12, 10), new THREE.MeshBasicMaterial({ color: 0xef4444 }), 0.22, 0.78, 0.02, false);
+        pack.add(beacon);
+        torsoGroup.add(pack);
+
+        // helmet seal: neck gasket + wide gold ring the glass dome sits on
+        torsoGroup.add(part(new THREE.CylinderGeometry(0.5, 0.27, 0.1, 40), suitGreyMat, 0, 1.03, 0));
+        const helmetRing = part(new THREE.TorusGeometry(0.525, 0.05, 14, 56), goldMat, 0, 1.085, 0);
+        helmetRing.rotation.x = Math.PI / 2;
+        const helmetRing2 = part(new THREE.TorusGeometry(0.47, 0.025, 10, 48), darkMat, 0, 1.0, 0);
+        helmetRing2.rotation.x = Math.PI / 2;
+        torsoGroup.add(helmetRing, helmetRing2);
+        for (let i = 0; i < 8; i++) { // ring bolts
+            const a = (i / 8) * Math.PI * 2 + 0.39;
+            torsoGroup.add(part(new THREE.SphereGeometry(0.018, 8, 8), steelMat, Math.cos(a) * 0.575, 1.085, Math.sin(a) * 0.575, false));
+        }
+
+        // legs: thighs along the seat, shins hanging, chunky boots
+        for (const sx of [-1, 1]) {
+            const hip = V3(sx * 0.2, 0.2, 0.12), knee = V3(sx * 0.25, 0.22, 0.6), ankle = V3(sx * 0.25, -0.34, 0.68);
+            alien.add(capsule(hip, knee, 0.15, 0.13, suitMat), capsule(knee, ankle, 0.125, 0.11, suitMat));
+            const kneePad = part(new THREE.SphereGeometry(0.1, 16, 12), suitGreyMat, knee.x, knee.y + 0.02, knee.z + 0.08);
+            kneePad.scale.set(1, 0.9, 0.6);
+            const ankleRing = part(new THREE.TorusGeometry(0.115, 0.022, 10, 28), goldMat, ankle.x, ankle.y + 0.07, ankle.z - 0.01);
+            ankleRing.rotation.x = Math.PI / 2 - 0.14;
+            const boot = part(new THREE.SphereGeometry(0.15, 20, 16), rubberMat, ankle.x, ankle.y - 0.06, ankle.z + 0.07);
+            boot.scale.set(0.95, 0.8, 1.45);
+            const sole = part(new THREE.CylinderGeometry(0.14, 0.15, 0.05, 20), darkMat, ankle.x, ankle.y - 0.165, ankle.z + 0.07);
+            sole.scale.set(0.95, 1, 1.45);
+            alien.add(kneePad, ankleRing, boot, sole, part(new THREE.BoxGeometry(0.1, 0.03, 0.12), orangeMat, ankle.x, ankle.y - 0.01, ankle.z + 0.2, false));
+        }
+
+        // arms: two-bone rigs that follow a moving hand target (typing, or waving on hover)
+        const ARM_L1 = 0.5, ARM_L2 = 0.5;
+        function makeArm(sx) {
+            const shoulder = V3(sx * 0.44, 0.88, 0.02);
+            const g = new THREE.Group();
+            const unit = () => new THREE.CylinderGeometry(1, 1, 1, 20);
+            const upper = part(unit(), suitMat), fore = part(unit(), suitMat);
+            const shoulderBall = part(new THREE.SphereGeometry(0.15, 20, 16), suitGreyMat, shoulder.x, shoulder.y, shoulder.z);
+            const elbowBall = part(new THREE.SphereGeometry(0.105, 18, 14), suitGreyMat);
+            const stripe = part(new THREE.TorusGeometry(0.112, 0.018, 8, 24), orangeMat); // upper-arm stripe
+
+            // hand: glove palm, three fingers and a thumb, gold wrist cuff. Fingers point along +Y.
+            const hand = new THREE.Group();
+            const cuff = part(new THREE.TorusGeometry(0.095, 0.028, 10, 26), goldMat, 0, -0.02, 0);
+            cuff.rotation.x = Math.PI / 2;
+            const palm = part(new THREE.SphereGeometry(0.1, 18, 14), rubberMat, 0, 0.07, 0);
+            palm.scale.set(1.05, 0.95, 0.7);
+            hand.add(cuff, palm);
+            for (let i = -1; i <= 1; i++) hand.add(capsule(V3(i * 0.055, 0.12, 0), V3(i * 0.07, 0.21 - Math.abs(i) * 0.015, 0), 0.03, 0.026, rubberMat));
+            hand.add(capsule(V3(sx * -0.085, 0.06, 0.01), V3(sx * -0.14, 0.12, 0.03), 0.03, 0.026, rubberMat));
+
+            g.add(upper, fore, shoulderBall, elbowBall, stripe, hand);
+            alien.add(g);
+
+            const dir = new THREE.Vector3(), elbow = new THREE.Vector3(), tmp = new THREE.Vector3(), poleV = new THREE.Vector3();
+            function seg(mesh, a, b, r) {
+                tmp.subVectors(b, a);
+                const len = tmp.length();
+                mesh.position.copy(a).addScaledVector(tmp, 0.5);
+                mesh.scale.set(r, len, r);
+                mesh.quaternion.setFromUnitVectors(UP, tmp.normalize());
+            }
+            return {
+                shoulder,
+                // place the arm so the hand sits at `target`; `pole` says which way the elbow bends
+                pose(target, pole) {
+                    dir.subVectors(target, shoulder);
+                    const d = Math.min(dir.length(), ARM_L1 + ARM_L2 - 0.02);
+                    dir.normalize();
+                    const h = Math.sqrt(Math.max(ARM_L1 * ARM_L1 - (d / 2) * (d / 2), 0));
+                    poleV.copy(pole).addScaledVector(dir, -pole.dot(dir)).normalize();
+                    elbow.copy(shoulder).addScaledVector(dir, d / 2).addScaledVector(poleV, h);
+                    const wrist = tmp.copy(shoulder).addScaledVector(dir, d).clone();
+                    seg(upper, shoulder, elbow, 0.105);
+                    seg(fore, elbow, wrist, 0.092);
+                    elbowBall.position.copy(elbow);
+                    stripe.position.copy(shoulder).lerp(elbow, 0.45);
+                    stripe.quaternion.copy(upper.quaternion);
+                    stripe.rotateX(Math.PI / 2);
+                    hand.position.copy(wrist);
+                    hand.quaternion.setFromUnitVectors(UP, tmp.subVectors(wrist, elbow).normalize());
+                }
+            };
+        }
+        const armRight = makeArm(-1), armLeft = makeArm(1);
+
+        // head: pivots at the neck so it can look around inside the helmet
+        const headPivot = new THREE.Group();
+        headPivot.position.set(0, 1.1, 0);
+        alien.add(headPivot);
+        const HEAD_Y = 0.44, HEAD_R = 0.42;
+        const headCenter = V3(0, HEAD_Y, 0);
+        // One sculpted mesh: a sphere pushed out into a wide alien cranium on top and tapered to a small chin.
+        const smooth = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); };
+        function sculptHead(p) { // p: point on the unit sphere -> point on the head (relative to the head centre)
+            const up = smooth(-0.6, 0.8, p.y), down = smooth(0.35, -1, p.y);
+            const wide = 1.02 + 0.13 * up - 0.16 * down;
+            return p.set(p.x * wide * 1.03, p.y * (1 + 0.1 * up - 0.06 * down) + 0.03 * up, p.z * (wide + 0.03 * down * Math.max(p.z, 0))).multiplyScalar(HEAD_R);
+        }
+        // point on the head's surface in a given direction (used to seat every facial feature)
+        const onHead = (x, y, z, out = 1) => sculptHead(V3(x, y, z).normalize()).multiplyScalar(out).add(headCenter);
+
+        const headGeo = new THREE.SphereGeometry(1, 64, 48);
+        const hp = headGeo.attributes.position, hv = new THREE.Vector3();
+        for (let i = 0; i < hp.count; i++) {
+            sculptHead(hv.fromBufferAttribute(hp, i).normalize());
+            hp.setXYZ(i, hv.x, hv.y, hv.z);
+        }
+        headGeo.computeVertexNormals();
+        headPivot.add(part(headGeo, skinMat, 0, HEAD_Y, 0), part(new THREE.CylinderGeometry(0.13, 0.16, 0.2, 20), skinMat, 0, 0.04, 0));
+
+        // big glossy almond eyes with highlights; they blink
+        const eyes = [];
+        for (const sx of [-1, 1]) {
+            const eye = new THREE.Group();
+            eye.position.copy(onHead(sx * 0.42, 0.02, 0.9, 0.94));
+            eye.rotation.set(0, sx * 0.38, sx * 0.3);
+            const ball = part(new THREE.SphereGeometry(0.135, 32, 24), eyeMat, 0, 0, 0, false);
+            ball.scale.set(0.82, 1.12, 0.5);
+            const socket = part(new THREE.SphereGeometry(0.15, 28, 20), skinDarkMat, 0, 0, -0.035, false);
+            socket.scale.set(0.84, 1.12, 0.4);
+            const hi1 = part(new THREE.SphereGeometry(0.03, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffffff }), sx * -0.03, 0.06, 0.056, false);
+            const hi2 = part(new THREE.SphereGeometry(0.014, 10, 8), new THREE.MeshBasicMaterial({ color: 0xbae6fd }), sx * 0.035, -0.045, 0.058, false);
+            eye.add(socket, ball, hi1, hi2);
+            headPivot.add(eye);
+            eyes.push(eye);
+            // soft brow ridge above each eye
+            const brow = capsule(onHead(sx * 0.26, 0.4, 0.9, 1.0), onHead(sx * 0.52, 0.4, 0.8, 1.0), 0.016, 0.011, skinDarkMat);
+            headPivot.add(brow);
+            // blush
+            const cheek = part(new THREE.SphereGeometry(0.055, 16, 12), new THREE.MeshStandardMaterial({ color: 0xf9a8d4, roughness: 0.8, transparent: true, opacity: 0.55 }), 0, 0, 0, false);
+            cheek.position.copy(onHead(sx * 0.6, -0.32, 0.72, 0.99));
+            cheek.lookAt(headCenter);
+            cheek.scale.set(1.1, 0.75, 0.25);
+            headPivot.add(cheek);
+            // small pointed ear fins
+            const ear = part(new THREE.ConeGeometry(0.075, 0.24, 16), skinMat, sx * 0.5, HEAD_Y + 0.06, -0.02);
+            ear.rotation.z = sx * -1.15;
+            ear.scale.z = 0.55;
+            const earIn = part(new THREE.ConeGeometry(0.04, 0.15, 12), skinDarkMat, sx * 0.505, HEAD_Y + 0.06, 0.012, false);
+            earIn.rotation.z = sx * -1.15;
+            earIn.scale.z = 0.4;
+            headPivot.add(ear, earIn);
+        }
+        // nose dots + a small smile
+        for (const sx of [-1, 1]) { const n = part(new THREE.SphereGeometry(0.011, 8, 8), skinDarkMat, 0, 0, 0, false); n.position.copy(onHead(sx * 0.05, -0.24, 0.97, 1.0)); headPivot.add(n); }
+        const smile = part(new THREE.TorusGeometry(0.075, 0.012, 8, 24, Math.PI * 0.8), new THREE.MeshStandardMaterial({ color: 0x065f46, roughness: 0.7 }), 0, 0, 0, false);
+        smile.position.copy(onHead(0, -0.44, 0.9, 0.985));
+        smile.rotation.set(0.25, 0, Math.PI + Math.PI * 0.1);
+        headPivot.add(smile);
+        // darker freckle spots across the top and back of the head
+        [[0.25, 0.9, 0.3, 0.05], [-0.3, 0.92, 0.15, 0.04], [0.05, 1, -0.1, 0.06], [0.45, 0.8, -0.3, 0.045], [-0.5, 0.75, -0.25, 0.05],
+         [-0.15, 0.85, -0.5, 0.055], [0.2, 0.7, -0.65, 0.04], [-0.45, 0.85, 0.35, 0.03], [0.55, 0.78, 0.1, 0.03]].forEach(s => {
+            const spot = part(new THREE.SphereGeometry(s[3], 14, 10), skinDarkMat, 0, 0, 0, false);
+            spot.position.copy(onHead(s[0], s[1], s[2], 0.995));
+            spot.lookAt(headCenter);
+            spot.scale.z = 0.18;
+            headPivot.add(spot);
+        });
+        // antennae: curved stalks with glowing tips; each sways from its base
+        const antennae = [];
+        for (const sx of [-1, 1]) {
+            const ant = new THREE.Group();
+            ant.position.copy(onHead(sx * 0.36, 0.93, -0.04, 0.97));
+            const curve = new THREE.QuadraticBezierCurve3(V3(0, 0, 0), V3(sx * 0.1, 0.24, -0.05), V3(sx * 0.21, 0.25, 0.06));
+            const stalk = new THREE.Mesh(new THREE.TubeGeometry(curve, 24, 0.017, 10), skinDarkMat);
+            stalk.castShadow = true;
+            const tip = part(new THREE.SphereGeometry(0.05, 16, 14), glowCyan, sx * 0.21, 0.25, 0.06, false);
+            const halo = part(new THREE.SphereGeometry(0.085, 16, 14), new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.22, depthWrite: false }), sx * 0.21, 0.25, 0.06, false);
+            ant.add(stalk, tip, halo, part(new THREE.SphereGeometry(0.03, 12, 10), skinDarkMat, 0, 0, 0, false));
+            ant.userData.halo = halo;
+            headPivot.add(ant);
+            antennae.push(ant);
+        }
+
+        // glass bubble helmet (open at the bottom where it meets the gold ring) + a glint
+        const helmet = new THREE.Mesh(
+            new THREE.SphereGeometry(0.74, 56, 40, 0, Math.PI * 2, 0, 2.35),
+            new THREE.MeshPhysicalMaterial({ color: 0xcfe8ff, transparent: true, opacity: 0.17, roughness: 0.04, metalness: 0.1, clearcoat: 1.0, clearcoatRoughness: 0.02, depthWrite: false, side: THREE.DoubleSide })
+        );
+        helmet.position.set(0, 1.6, 0);
+        helmet.renderOrder = 3;
+        const glint = new THREE.Mesh(new THREE.TorusGeometry(0.715, 0.012, 6, 30, 0.75), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false }));
+        glint.position.copy(helmet.position);
+        glint.rotation.set(0.5, -0.75, 0.9);
+        glint.renderOrder = 4;
+        const glint2 = glint.clone();
+        glint2.geometry = new THREE.TorusGeometry(0.715, 0.008, 6, 16, 0.22);
+        glint2.rotation.set(0.5, -0.75, 1.8);
+        alien.add(helmet, glint, glint2);
+        const helmetLight = new THREE.PointLight(0xbfe3ff, 0.55, 2.2); // soft fill so the face reads clearly
+        helmetLight.position.set(0, 1.55, 0.6);
+        alien.add(helmetLight);
+
+        // ---------- the desk ----------
+        const deskGroup = new THREE.Group();
+        deskGroup.position.set(0, 0, 0.55);
+        stationGroup.add(deskGroup);
+
+        const deskShape = new THREE.Shape();
+        deskShape.moveTo(-1.6, -0.6);
+        deskShape.lineTo(1.6, -0.6);
+        deskShape.absarc(1.6, 0, 0.6, -Math.PI / 2, Math.PI / 2, false);
+        deskShape.lineTo(-1.6, 0.6);
+        deskShape.absarc(-1.6, 0, 0.6, Math.PI / 2, Math.PI * 1.5, false);
+        const deskTop = part(new THREE.ExtrudeGeometry(deskShape, { depth: 0.1, bevelEnabled: true, bevelSegments: 3, steps: 1, bevelSize: 0.04, bevelThickness: 0.04 }), matteMat(0xe2e8f0));
+        deskTop.rotation.x = Math.PI / 2;
+        deskTop.position.y = 1.12;
+        // glowing light strip under the rim
+        const rim = new THREE.Mesh(new THREE.ExtrudeGeometry(deskShape, { depth: 0.03, bevelEnabled: false }), glowBlue);
+        rim.rotation.x = Math.PI / 2;
+        rim.position.y = 0.975;
+        rim.scale.set(0.985, 0.97, 1);
+        deskGroup.add(deskTop, rim);
+        for (const sx of [-1, 1]) {
+            const leg = part(new THREE.CylinderGeometry(0.13, 0.06, 1.0, 16), metalMat(0x64748b), sx * 1.55, 0.5, 0.15);
+            leg.rotation.z = sx * 0.3;
+            deskGroup.add(leg, part(new THREE.CylinderGeometry(0.16, 0.2, 0.05, 20), darkMat, sx * 1.7, 0.025, 0.15));
+        }
+        const DESK_Y = 1.16; // top surface
+
+        // keyboard with softly lit keys
+        const keysTex = canvasTexture(256, 96, (g, w, h) => {
+            g.fillStyle = '#0b1220'; g.fillRect(0, 0, w, h);
+            for (let r = 0; r < 4; r++) for (let c = 0; c < 12; c++) {
+                if (r === 3 && c > 2 && c < 9) continue;
+                g.fillStyle = (r * 12 + c) % 7 === 0 ? '#7dd3fc' : '#334a6b';
+                g.fillRect(8 + c * 20.3, 8 + r * 21, 16, 15);
+            }
+            g.fillStyle = '#334a6b'; g.fillRect(8 + 3 * 20.3, 8 + 3 * 21, 118, 15);
+        });
+        const keyboard = new THREE.Group();
+        keyboard.position.set(0, DESK_Y + 0.02, -0.38);
+        keyboard.rotation.x = 0.07;
+        const keysTop = part(new THREE.PlaneGeometry(0.92, 0.3), new THREE.MeshBasicMaterial({ map: keysTex }), 0, 0.022, 0, false);
+        keysTop.rotation.x = -Math.PI / 2;
+        keyboard.add(part(new THREE.BoxGeometry(1.0, 0.04, 0.36), darkMat), keysTop);
+        deskGroup.add(keyboard);
+
+        // mug of something warm
+        const mug = new THREE.Group();
+        mug.position.set(-1.05, DESK_Y, -0.2);
+        const mugHandle = part(new THREE.TorusGeometry(0.045, 0.014, 8, 18), suitMat, 0.085, 0.075, 0);
+        mug.add(part(new THREE.CylinderGeometry(0.075, 0.065, 0.15, 24), suitMat, 0, 0.075, 0), mugHandle,
+            part(new THREE.CylinderGeometry(0.064, 0.064, 0.01, 24), new THREE.MeshStandardMaterial({ color: 0x4a2c1a, roughness: 0.4 }), 0, 0.148, 0, false));
+        const steam = [];
+        for (let i = 0; i < 3; i++) {
+            const puff = part(new THREE.SphereGeometry(0.03, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.25, depthWrite: false }), 0, 0.2, 0, false);
+            mug.add(puff);
+            steam.push(puff);
+        }
+        deskGroup.add(mug);
+
+        // a little toy rocket
+        const rocket = new THREE.Group();
+        rocket.position.set(-1.62, DESK_Y, 0.22);
+        rocket.rotation.z = 0.12;
+        rocket.add(part(new THREE.CylinderGeometry(0.07, 0.07, 0.24, 20), suitMat, 0, 0.2, 0), part(new THREE.ConeGeometry(0.07, 0.14, 20), orangeMat, 0, 0.39, 0),
+            part(new THREE.CylinderGeometry(0.05, 0.035, 0.05, 16), darkMat, 0, 0.055, 0), part(new THREE.SphereGeometry(0.028, 12, 10), glowCyan, 0, 0.24, 0.062, false));
+        for (let i = 0; i < 3; i++) {
+            const fin = part(new THREE.BoxGeometry(0.02, 0.12, 0.08), orangeMat, 0, 0.11, 0);
+            const pivot = new THREE.Group();
+            pivot.rotation.y = (i / 3) * Math.PI * 2;
+            fin.position.z = 0.09;
+            pivot.add(fin);
+            rocket.add(pivot);
+        }
+        deskGroup.add(rocket);
+
+        // tablet with notes, and a stylus
+        const tablet = new THREE.Group();
+        tablet.position.set(1.02, DESK_Y + 0.012, -0.22);
+        tablet.rotation.y = -0.35;
+        const tabletTex = canvasTexture(128, 180, (g, w, h) => {
+            g.fillStyle = '#0b1830'; g.fillRect(0, 0, w, h);
+            g.fillStyle = '#7dd3fc'; g.fillRect(12, 14, 60, 8);
+            g.fillStyle = '#3b5b86';
+            for (let i = 0; i < 8; i++) g.fillRect(12, 36 + i * 16, 60 + ((i * 37) % 44), 5);
+            g.strokeStyle = '#fab52b'; g.lineWidth = 3; g.beginPath(); g.arc(98, 150, 14, 0, Math.PI * 2); g.stroke();
+        });
+        const tabletScreen = part(new THREE.PlaneGeometry(0.3, 0.42), new THREE.MeshBasicMaterial({ map: tabletTex }), 0, 0.013, 0, false);
+        tabletScreen.rotation.x = -Math.PI / 2;
+        tablet.add(part(new THREE.BoxGeometry(0.34, 0.022, 0.46), darkMat), tabletScreen);
+        const stylus = capsule(V3(0.26, 0.012, -0.16), V3(0.3, 0.012, 0.16), 0.012, 0.008, goldMat);
+        tablet.add(stylus);
+        deskGroup.add(tablet);
+
+        // holographic projector with a spinning wireframe planet
+        const holoBase = part(new THREE.CylinderGeometry(0.2, 0.25, 0.1, 32), metalMat(0x475569), 1.6, DESK_Y + 0.05, 0.18);
+        deskGroup.add(holoBase);
+        holoBaseRef = holoBase; // spins in the game loop
+        const holoPlanet = new THREE.Group();
+        holoPlanet.position.set(1.6, DESK_Y + 0.62, 0.18);
+        const holoWire = new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.IcosahedronGeometry(0.24, 1)), new THREE.LineBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.85 }));
+        const holoRing = new THREE.Mesh(new THREE.TorusGeometry(0.36, 0.008, 6, 48), new THREE.MeshBasicMaterial({ color: 0xfab52b, transparent: true, opacity: 0.9 }));
+        holoRing.rotation.x = 1.25;
+        holoPlanet.add(holoWire, holoRing);
+        const holoBeam = new THREE.Mesh(new THREE.ConeGeometry(0.3, 0.5, 24, 1, true), new THREE.MeshBasicMaterial({ color: 0x3b82f6, transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
+        holoBeam.position.set(1.6, DESK_Y + 0.33, 0.18);
+        holoBeam.rotation.x = Math.PI;
+        const holoLight = new THREE.PointLight(0x3b82f6, 1, 3);
+        holoLight.position.set(1.6, DESK_Y + 0.5, 0.18);
+        deskGroup.add(holoPlanet, holoBeam, holoLight);
+
+        // three see-through holo screens floating over the front edge of the desk
+        function holoScreen(w, h, tex, x, y, z, ry) {
+            const g = new THREE.Group();
+            g.position.set(x, y, z);
+            g.rotation.y = ry;
+            const pane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.85, side: THREE.DoubleSide, depthWrite: false }));
+            pane.renderOrder = 2;
+            const edge = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.PlaneGeometry(w + 0.04, h + 0.04)), new THREE.LineBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0.9 }));
+            g.add(pane, edge);
+            deskGroup.add(g);
+            return g;
+        }
+        // centre: a live heart-signal trace (redrawn in the game loop)
+        const ecgCanvas = document.createElement('canvas');
+        ecgCanvas.width = 512; ecgCanvas.height = 256;
+        const ecgCtx = ecgCanvas.getContext('2d');
+        const ecgTex = new THREE.CanvasTexture(ecgCanvas);
+        ecgTex.encoding = THREE.sRGBEncoding;
+        function ecgValue(p) { // one heartbeat, p in 0..1
+            return Math.exp(-Math.pow((p - 0.3) / 0.012, 2)) * 1.0 - Math.exp(-Math.pow((p - 0.27) / 0.012, 2)) * 0.18
+                 - Math.exp(-Math.pow((p - 0.335) / 0.014, 2)) * 0.28 + Math.exp(-Math.pow((p - 0.16) / 0.03, 2)) * 0.12
+                 + Math.exp(-Math.pow((p - 0.52) / 0.05, 2)) * 0.22;
+        }
+        function drawEcg(time) {
+            const g = ecgCtx, w = 512, h = 256;
+            g.clearRect(0, 0, w, h);
+            g.fillStyle = 'rgba(8, 20, 45, 0.55)'; g.fillRect(0, 0, w, h);
+            g.strokeStyle = 'rgba(125, 211, 252, 0.16)'; g.lineWidth = 1;
+            for (let x = 0; x <= w; x += 32) { g.beginPath(); g.moveTo(x, 0); g.lineTo(x, h); g.stroke(); }
+            for (let y = 0; y <= h; y += 32) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+            g.strokeStyle = '#7dd3fc'; g.lineWidth = 4; g.lineJoin = 'round'; g.shadowColor = '#38bdf8'; g.shadowBlur = 12;
+            g.beginPath();
+            for (let x = 0; x <= w; x += 3) {
+                const p = ((x / 190 + time * 0.55) % 1 + 1) % 1;
+                const y = 160 - ecgValue(p) * 105;
+                x ? g.lineTo(x, y) : g.moveTo(x, y);
+            }
+            g.stroke();
+            g.shadowBlur = 0;
+            g.fillStyle = '#fab52b';
+            for (let i = 0; i < 5; i++) g.fillRect(20 + i * 22, 222, 14, 10);
+            g.fillStyle = 'rgba(125, 211, 252, 0.7)'; g.fillRect(140, 224, 150, 6); g.fillRect(400, 20, 90, 6); g.fillRect(430, 34, 60, 6);
+            ecgTex.needsUpdate = true;
+        }
+        drawEcg(0);
+        const barsTex = canvasTexture(256, 192, (g, w, h) => {
+            g.fillStyle = 'rgba(8, 20, 45, 0.55)'; g.fillRect(0, 0, w, h);
+            [0.45, 0.7, 0.55, 0.9, 0.65, 0.8].forEach((v, i) => {
+                g.fillStyle = i === 3 ? '#fab52b' : '#7dd3fc';
+                g.fillRect(24 + i * 36, 160 - v * 120, 22, v * 120);
+            });
+            g.fillStyle = 'rgba(125, 211, 252, 0.7)'; g.fillRect(20, 166, 216, 3); g.fillRect(20, 16, 90, 6);
+        });
+        const radarTex = canvasTexture(256, 192, (g, w, h) => {
+            g.fillStyle = 'rgba(8, 20, 45, 0.55)'; g.fillRect(0, 0, w, h);
+            g.strokeStyle = 'rgba(125, 211, 252, 0.8)'; g.lineWidth = 2;
+            for (const r of [22, 46, 70]) { g.beginPath(); g.arc(128, 100, r, 0, Math.PI * 2); g.stroke(); }
+            g.beginPath(); g.moveTo(128, 24); g.lineTo(128, 176); g.moveTo(52, 100); g.lineTo(204, 100); g.stroke();
+            g.fillStyle = '#fab52b'; g.beginPath(); g.arc(160, 70, 7, 0, Math.PI * 2); g.fill();
+            g.fillStyle = '#f472b6'; g.beginPath(); g.arc(96, 128, 5, 0, Math.PI * 2); g.fill();
+        });
+        const screens = [
+            holoScreen(1.5, 0.75, ecgTex, 0, DESK_Y + 0.62, 0.42, 0),
+            holoScreen(0.8, 0.6, barsTex, -1.22, DESK_Y + 0.58, 0.22, 0.5),
+            holoScreen(0.8, 0.6, radarTex, 1.0, DESK_Y + 0.98, 0.3, -0.42)
+        ];
+        // emitter bar the screens rise from
+        deskGroup.add(part(new THREE.BoxGeometry(1.6, 0.03, 0.06), darkMat, 0, DESK_Y + 0.015, 0.42), part(new THREE.BoxGeometry(1.5, 0.012, 0.025), glowCyan, 0, DESK_Y + 0.036, 0.42, false));
+        const screenGlow = new THREE.PointLight(0x60a5fa, 0.9, 4);
+        screenGlow.position.set(0, DESK_Y + 0.6, 0.1);
+        deskGroup.add(screenGlow);
+
+        // ---------- hand targets (in the alien's local space) ----------
+        const KEY_Y = DESK_Y + 0.07 - 0.72;                     // keyboard height, relative to the seat top
+        const KEY_Z = 0.55 - 0.38 + 0.7;                        // keyboard depth, relative to the alien
+        const typeTarget = { r: V3(-0.24, KEY_Y, KEY_Z), l: V3(0.24, KEY_Y, KEY_Z) };
+        const waveBase = V3(-0.78, 1.42, 0.3);
+        const handR = typeTarget.r.clone(), handL = typeTarget.l.clone();
+        const poleType = { r: V3(-0.7, -0.7, -0.2), l: V3(0.7, -0.7, -0.2) }, poleWave = V3(-0.9, -0.4, -0.1);
+        const poleR = poleType.r.clone();
+        let waveAmount = 0, nextBlink = 2.5, blinkT = -1;
+        const look = { yaw: 0, pitch: 0 };
+
+        function updateStation(time, dt) {
+            const hovering = hoveredObject === stationHitbox && !isTransitioning;
+            waveAmount += ((hovering ? 1 : 0) - waveAmount) * Math.min(1, dt * 6);
+
+            // breathing
+            const breath = Math.sin(time * 1.6) * 0.012;
+            torsoGroup.scale.set(1 + breath, 1 + breath * 0.6, 1 + breath);
+
+            // hands: typing by default, the right hand lifts into a wave when hovered
+            const tapR = Math.max(0, Math.sin(time * 11)) * 0.035, tapL = Math.max(0, Math.sin(time * 11 + 2.1)) * 0.035;
+            const tr = typeTarget.r, tl = typeTarget.l;
+            const wave = V3(waveBase.x + Math.sin(time * 7) * 0.13, waveBase.y + Math.cos(time * 7) * 0.03, waveBase.z);
+            handR.set(tr.x + Math.sin(time * 1.3) * 0.07, tr.y + tapR, tr.z + Math.cos(time * 0.9) * 0.03).lerp(wave, waveAmount);
+            handL.set(tl.x + Math.sin(time * 1.1 + 1) * 0.07, tl.y + tapL, tl.z + Math.sin(time * 0.8) * 0.03);
+            poleR.copy(poleType.r).lerp(poleWave, waveAmount);
+            armRight.pose(handR, poleR);
+            armLeft.pose(handL, poleType.l);
+
+            // head follows the pointer a little, with an idle sway; tilts when waving
+            const wantYaw = THREE.MathUtils.clamp(mouse.x * 0.55, -0.6, 0.6) + Math.sin(time * 0.5) * 0.06;
+            const wantPitch = THREE.MathUtils.clamp(-mouse.y * 0.22, -0.2, 0.25) + 0.08 * (1 - waveAmount);
+            look.yaw += (wantYaw - look.yaw) * Math.min(1, dt * 4);
+            look.pitch += (wantPitch - look.pitch) * Math.min(1, dt * 4);
+            headPivot.rotation.set(look.pitch, look.yaw, Math.sin(time * 0.7) * 0.03 + waveAmount * 0.12);
+
+            // blink
+            if (blinkT < 0 && time > nextBlink) blinkT = 0;
+            let lid = 1;
+            if (blinkT >= 0) {
+                blinkT += dt;
+                lid = Math.max(0.08, Math.abs(blinkT - 0.09) / 0.09);
+                if (blinkT > 0.18) { blinkT = -1; lid = 1; nextBlink = time + 2.5 + Math.random() * 3; }
+            }
+            eyes.forEach(e => { e.scale.y = lid; });
+
+            // antennae sway and their tips pulse
+            antennae.forEach((a, i) => {
+                a.rotation.z = Math.sin(time * 1.8 + i * 1.7) * 0.09;
+                a.rotation.x = Math.cos(time * 1.4 + i) * 0.07;
+                a.userData.halo.scale.setScalar(1 + Math.sin(time * 3 + i) * 0.18);
+            });
+
+            // suit lights, beacon, steam, holograms
+            chestLeds.forEach((led, i) => { led.visible = Math.sin(time * 3 + i * 1.9) > -0.55; });
+            beacon.visible = (time % 1.4) < 0.7;
+            steam.forEach((p, i) => {
+                const k = (time * 0.35 + i / 3) % 1;
+                p.position.set(Math.sin(k * 6 + i) * 0.025, 0.17 + k * 0.28, 0);
+                p.material.opacity = 0.28 * (1 - k);
+                p.scale.setScalar(0.7 + k * 1.3);
+            });
+            holoPlanet.rotation.y = time * 0.8;
+            holoPlanet.position.y = DESK_Y + 0.62 + Math.sin(time * 1.5) * 0.03;
+            screens.forEach((s, i) => { s.position.y += Math.sin(time * 1.2 + i * 2) * 0.0006; });
+        }
+
+        const stationHitbox = new THREE.Mesh(new THREE.BoxGeometry(4.8 * STATION_SCALE, 3.4 * STATION_SCALE, 3.0 * STATION_SCALE), hitboxMat);
+        stationHitbox.position.copy(stationMount.position);
+        stationHitbox.position.y += 1.7 * STATION_SCALE;
+        stationHitbox.rotation.y = stationMount.rotation.y;
+        stationHitbox.userData = { target: 'about.html', title: 'ABOUT ME' };
+        ufoGroup.add(stationHitbox);
+        interactables.push(stationHitbox);
 
 
-        // C. DATA ARCHIVE (Stories Behind) - Cylindrical Holographic Data Core
+        // B. DATA CORE (Research) - Cylindrical Holographic Data Core
         const archiveGroup = new THREE.Group();
-        archiveGroup.position.set(4, 0.5, -2);
+        archiveGroup.position.set(6.0, 0.5, -0.6);
 
         // Core Base & Pillar
         const coreBase = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 0.4, 32), metalMat(0x334155));
@@ -461,14 +901,14 @@
         const archiveHitbox = new THREE.Mesh(new THREE.BoxGeometry(3.5, 4.5, 3.5), hitboxMat);
         archiveHitbox.position.copy(archiveGroup.position);
         archiveHitbox.position.y += 1.8;
-        archiveHitbox.userData = { target: 'activities.html', title: 'ACTIVITIES / CLUB' };
+        archiveHitbox.userData = { target: 'research.html', title: 'RESEARCH' };
         ufoGroup.add(archiveHitbox);
         interactables.push(archiveHitbox);
 
 
-        // D. POTTED CACTUS (Projects) - Cute clay cactus in a terracotta pot
+        // C. POTTED CACTUS (Projects) - Cute clay cactus in a terracotta pot
         const cactusGroup = new THREE.Group();
-        cactusGroup.position.set(-4, 0.5, 3);
+        cactusGroup.position.set(-5.9, 0.5, -0.4);
 
         const potMat = matteMat(0xc2703d);      // terracotta
         const soilMat = matteMat(0x3b2a20);     // dark soil
@@ -654,11 +1094,18 @@
 
         // --- GAME LOOP ---
         const clock = new THREE.Clock();
+        let lastTime = 0, frame = 0;
         
         function animate() {
             requestAnimationFrame(animate);
             const time = clock.getElapsedTime();
-            const delta = clock.getDelta();
+            const dt = Math.min(time - lastTime, 0.05);
+            lastTime = time;
+            frame++;
+
+            // The pilot: typing, breathing, blinking, looking around (and waving when hovered)
+            updateStation(time, dt);
+            if (frame % 2 === 0) drawEcg(time); // live heart-signal screen, redrawn every other frame
 
             // Passive Environment Animation
             spaceGroup.rotation.y = time * 0.005; // Slower majestic rotation
@@ -686,7 +1133,7 @@
             interactables.forEach(obj => {
                 if(obj.scaleTarget) {
                     // We actually scale the parent group visually, not the hitbox
-                    const visualGroup = (obj === deskHitbox) ? deskGroup : (obj === pilotHitbox) ? pilotGroup : (obj === archiveHitbox) ? archiveGroup : cactusGroup;
+                    const visualGroup = (obj === stationHitbox) ? stationGroup : (obj === archiveHitbox) ? archiveGroup : cactusGroup;
                     visualGroup.scale.lerp(new THREE.Vector3(obj.scaleTarget, obj.scaleTarget, obj.scaleTarget), 0.1);
                 }
             });
