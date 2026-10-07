@@ -422,9 +422,76 @@
         .laptop-dot.active {
             background: #38bdf8; transform: scale(1.25);
         }
+
+        /* ================= Floating motion ================= */
+        /* soft colour clouds drifting slowly behind the page */
+        .float-bg { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .float-orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.5; will-change: transform; }
+        .float-orb.o1 { width: 420px; height: 420px; left: -120px; top: 12%; background: #dbeafe; animation: drift1 26s ease-in-out infinite alternate; }
+        .float-orb.o2 { width: 360px; height: 360px; right: -100px; top: 42%; background: #fde9d0; animation: drift2 32s ease-in-out infinite alternate; }
+        .float-orb.o3 { width: 300px; height: 300px; left: 30%; bottom: -120px; background: #e0f2e9; animation: drift3 29s ease-in-out infinite alternate; }
+        @keyframes drift1 { to { transform: translate(90px, 70px) scale(1.12); } }
+        @keyframes drift2 { to { transform: translate(-80px, -90px) scale(1.08); } }
+        @keyframes drift3 { to { transform: translate(60px, -70px) scale(1.15); } }
+        main, nav { position: relative; z-index: 1; }
+        nav.fixed { position: fixed; z-index: 50; }
+
+        /* the laptop hovers: it bobs gently while its ground shadow tightens and loosens */
+        .laptop-3d { animation: laptopFloat 5.5s ease-in-out infinite; }
+        @keyframes laptopFloat {
+            0%, 100% { transform: rotateX(4deg) rotateY(-13deg) translateY(0); }
+            50%      { transform: rotateX(5deg) rotateY(-11deg) translateY(-14px); }
+        }
+        .laptop-ground-shadow { animation: shadowBreath 5.5s ease-in-out infinite; }
+        @keyframes shadowBreath {
+            0%, 100% { transform: scaleX(1); opacity: 1; }
+            50%      { transform: scaleX(0.86); opacity: 0.6; }
+        }
+
+        /* photos drift up and down slightly, each on its own rhythm; they hold still while hovered */
+        .lightbox-thumb { animation: photoFloat 6s ease-in-out infinite; }
+        .lightbox-thumb:nth-child(2) { animation-duration: 7.2s; animation-delay: -2.1s; }
+        .lightbox-thumb:nth-child(3) { animation-duration: 6.6s; animation-delay: -4s; }
+        .lightbox-thumb:hover { animation-play-state: paused; }
+        @keyframes photoFloat {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50%      { transform: translateY(-7px) rotate(0.4deg); }
+        }
+
+        /* the dot between studies keeps a slow pulse after it lands */
+        .study-link.in .study-link-dot { animation: dotPulse 2.8s ease-out 1.2s infinite; }
+        @keyframes dotPulse {
+            0%   { box-shadow: 0 0 0 5px rgba(30, 41, 59, 0.1), 0 0 0 0 rgba(30, 41, 59, 0.25); }
+            100% { box-shadow: 0 0 0 5px rgba(30, 41, 59, 0.1), 0 0 0 16px rgba(30, 41, 59, 0); }
+        }
+
+        /* inside each card the points float up one after another, then the workflow columns */
+        .study-card li, .study-card .wf-col { opacity: 0; transform: translateY(14px); transition: opacity .6s ease, transform .6s cubic-bezier(.2, .7, .2, 1); }
+        .study.in .study-card li, .study.in .study-card .wf-col { opacity: 1; transform: none; }
+        .study-card li:nth-child(1) { transition-delay: .45s; }
+        .study-card li:nth-child(2) { transition-delay: .57s; }
+        .study-card li:nth-child(3) { transition-delay: .69s; }
+        .study-card li:nth-child(4) { transition-delay: .81s; }
+        .study-card li:nth-child(5) { transition-delay: .93s; }
+        .study-card .wf-col:nth-child(1) { transition-delay: 1.05s; }
+        .study-card .wf-col:nth-child(2) { transition-delay: 1.2s; }
+        .study-card .wf-col:nth-child(3) { transition-delay: 1.35s; }
+        .study-card .wf-col:nth-child(4) { transition-delay: 1.5s; }
+        /* cards lift a little under the pointer */
+        .study.in .study-card { transition: opacity .7s ease .3s, transform .45s ease, box-shadow .45s ease; }
+        .study.in .study-card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08); }
+
+        @media (prefers-reduced-motion: reduce) {
+            .float-orb, .laptop-3d, .laptop-ground-shadow, .lightbox-thumb, .study-link.in .study-link-dot { animation: none; }
+            .study-card li, .study-card .wf-col { transition: none; opacity: 1; transform: none; }
+        }
+
     </style>
 </head>
 <body class="antialiased text-gray-800">
+
+    <!-- soft colour clouds drifting behind the page -->
+    <div class="float-bg" aria-hidden="true"><span class="float-orb o1"></span><span class="float-orb o2"></span><span class="float-orb o3"></span></div>
 
     <nav class="fixed top-0 w-full z-50 glass-panel shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
