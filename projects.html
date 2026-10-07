@@ -27,8 +27,7 @@
     .proj-title{ font-size:clamp(2.4rem,6vw,4.6rem); line-height:0.98; font-weight:500; letter-spacing:-0.015em; }
     .tag{ font-size:0.72rem; font-weight:500; padding:0.3rem 0.75rem; border-radius:999px; border:1px solid var(--line); color:var(--ink-soft); background:#fff; }
 
-    .proj-block{ border-top:1px solid var(--line); padding:clamp(3rem,7vw,6rem) 0; }
-    .proj-block:last-of-type{ border-bottom:1px solid var(--line); }
+    .proj-block{ padding:clamp(1.5rem,4vw,2.5rem) 0 clamp(3rem,7vw,5rem); }
 
     .visual-frame{
         position:relative; width:100%; max-width:640px; margin:0 auto;
@@ -152,70 +151,166 @@
     .dc-dot.on{ background:var(--brain-accent); transform:scale(1.3); }
     .tap-affordance{ position:absolute; bottom:10px; left:50%; transform:translateX(-50%); font-size:0.62rem; letter-spacing:0.08em; text-transform:uppercase; color:#96989d; }
 
-    /* ---------- Hearing Aid App: phone mockup + wearer illustration ---------- */
-    #aid-frame{
-        background:radial-gradient(ellipse at 50% 30%, #eafdf7 0%, #dff5ee 100%);
-        aspect-ratio:auto; min-height:420px; padding:2.5rem 1.5rem;
-        display:flex; align-items:center; justify-content:center; gap:clamp(2rem,6vw,4.5rem);
-        flex-wrap:wrap;
+    /* ---------- Hearing Aid App: noisy room -> the app -> clean speech (simulated demo) ---------- */
+    .aid-demo{
+        margin-top:2.5rem; padding:clamp(1rem,3vw,1.75rem);
+        border-radius:24px; border:1px solid #cfe9e2;
+        background:radial-gradient(ellipse at 50% 0%, #f1fbf8 0%, #e6f6f1 100%);
+        display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:0;
+    }
+    .aid-panel{
+        background:#fff; border:1px solid var(--line); border-radius:18px; padding:1rem 1rem 0.9rem;
+        box-shadow:0 10px 26px rgba(15,118,110,0.07); min-width:0;
+    }
+    .aid-panel-head{ display:flex; align-items:center; gap:0.6rem; margin-bottom:0.7rem; }
+    .aid-step{
+        width:24px; height:24px; border-radius:50%; flex-shrink:0;
+        display:flex; align-items:center; justify-content:center;
+        font-size:0.7rem; font-weight:700; color:var(--aid-accent); border:1.5px solid var(--aid-accent); background:#fff;
+    }
+    .aid-panel-title{ font-size:0.85rem; font-weight:600; color:var(--ink); line-height:1.2; }
+    .aid-panel-sub{ font-size:0.68rem; color:var(--ink-soft); margin-top:1px; }
+    .aid-earbud{ width:26px; height:26px; margin-left:auto; color:#b6c0bd; transition:color .4s ease; flex-shrink:0; }
+    .aid-earbud-waves{ opacity:0.35; transition:opacity .4s ease; }
+    .aid-demo.is-on .aid-earbud{ color:var(--aid-accent); }
+    .aid-demo.is-on .aid-earbud-waves{ opacity:1; }
+    .aid-wave{ display:block; width:100%; height:104px; border-radius:12px; background:#f7faf9; border:1px solid #e6efec; }
+    .aid-legend{ display:flex; flex-wrap:wrap; gap:0.3rem 0.9rem; margin-top:0.65rem; font-size:0.66rem; color:var(--ink-soft); }
+    .aid-legend span{ display:inline-flex; align-items:center; gap:0.35rem; }
+    .aid-legend i{ width:8px; height:8px; border-radius:2px; display:inline-block; }
+    .aid-caption{
+        margin-top:0.65rem; min-height:2.6rem; padding:0.55rem 0.75rem; border-radius:12px;
+        background:#f7faf9; border:1px dashed #d5e3df;
+        font-family:'Times New Roman',Times,serif; font-size:0.95rem; font-style:italic; color:#9aa5a2; line-height:1.3;
+        display:flex; align-items:center;
+        transition:background .4s ease, border-color .4s ease, color .4s ease;
+    }
+    .aid-demo.is-on .aid-caption{ background:#ecf8f4; border:1px solid #bfe3da; color:#134e48; font-style:normal; }
+    .aid-caret{ display:inline-block; width:1.5px; height:1em; margin-left:2px; background:var(--aid-accent); vertical-align:-2px; animation:aidCaret 1s steps(1) infinite; }
+    @keyframes aidCaret{ 50%{ opacity:0; } }
+    .aid-stat{ display:flex; justify-content:space-between; align-items:baseline; margin-top:0.6rem; font-size:0.68rem; color:var(--ink-soft); }
+    .aid-stat b{ font-size:0.85rem; font-weight:700; color:#9aa5a2; font-variant-numeric:tabular-nums; transition:color .4s ease; }
+    .aid-demo.is-on .aid-stat b{ color:var(--aid-accent); }
+
+    /* the phone, with a flowing link on each side */
+    .aid-phone-wrap{ display:flex; align-items:center; }
+    .aid-link{ position:relative; width:clamp(14px,3vw,34px); height:2px; background:#cfe2dd; border-radius:2px; overflow:hidden; flex-shrink:0; }
+    .aid-link::after{
+        content:''; position:absolute; top:0; left:-60%; width:60%; height:100%;
+        background:linear-gradient(90deg, transparent, var(--aid-accent), transparent);
+        animation:aidFlow 1.5s linear infinite; animation-play-state:paused; opacity:0;
+    }
+    .aid-demo.is-on .aid-link::after{ animation-play-state:running; opacity:1; }
+    @keyframes aidFlow{ to{ left:100%; } }
+    .aid-phone{
+        width:196px; flex-shrink:0; position:relative;
+        border-radius:32px; background:#fff; border:3px solid #16302c;
+        box-shadow:0 20px 40px rgba(15,118,110,0.2);
+        padding:1.6rem 0.85rem 1rem; font-family:'Inter',sans-serif;
+        display:flex; flex-direction:column; align-items:center;
+    }
+    .aid-notch{ position:absolute; top:9px; left:50%; transform:translateX(-50%); width:50px; height:6px; border-radius:4px; background:#e3ece9; }
+    .aid-phone-head{ width:100%; text-align:center; }
+    .aid-app-title{ font-size:0.9rem; font-weight:700; color:var(--ink); letter-spacing:-0.01em; }
+    .aid-app-status{ display:inline-flex; align-items:center; gap:5px; margin-top:2px; font-size:0.6rem; color:var(--ink-soft); }
+    .aid-status-dot{ width:6px; height:6px; border-radius:50%; background:#c3c9cf; transition:background .3s ease; }
+    .aid-demo.is-on .aid-status-dot{ background:#16a34a; animation:rpLive 2s infinite; }
+
+    .aid-mic{
+        position:relative; width:92px; height:92px; margin-top:0.9rem;
+        border:0; background:transparent; padding:0; cursor:pointer; border-radius:50%;
+        display:flex; align-items:center; justify-content:center;
+    }
+    .aid-mic:focus-visible{ outline:2px solid var(--aid-accent); outline-offset:4px; }
+    .aid-mic-core{
+        position:relative; z-index:2; width:58px; height:58px; border-radius:50%;
+        background:var(--aid-accent); display:flex; align-items:center; justify-content:center;
+        box-shadow:0 8px 18px rgba(15,118,110,0.35);
+        transition:background .3s ease, transform .15s ease, box-shadow .3s ease;
+    }
+    .aid-mic:hover .aid-mic-core{ transform:scale(1.05); }
+    .aid-mic:active .aid-mic-core{ transform:scale(0.95); }
+    .aid-demo.is-on .aid-mic-core{ background:#dc6b4a; box-shadow:0 8px 18px rgba(220,107,74,0.35); }
+    .aid-mic-core svg{ width:24px; height:24px; }
+    .aid-ring{ position:absolute; inset:17px; border-radius:50%; border:2px solid var(--aid-accent); opacity:0; }
+    .aid-demo.is-on .aid-ring{ border-color:#dc6b4a; animation:aidRing 2.4s ease-out infinite; }
+    .aid-demo.is-on .aid-ring:nth-child(2){ animation-delay:.8s; }
+    .aid-demo.is-on .aid-ring:nth-child(3){ animation-delay:1.6s; }
+    /* idle: one slow ring invites the first tap */
+    .aid-demo.is-off .aid-ring:nth-child(1){ animation:aidRing 2.8s ease-out infinite; }
+    @keyframes aidRing{
+        0%  { transform:scale(1); opacity:0.5; }
+        100%{ transform:scale(1.62); opacity:0; }
+    }
+    .aid-btn-label{ margin-top:0.1rem; font-size:0.62rem; font-weight:700; letter-spacing:0.14em; color:var(--aid-accent); transition:color .3s ease; }
+    .aid-demo.is-on .aid-btn-label{ color:#dc6b4a; }
+
+    .aid-meter{ display:flex; align-items:flex-end; justify-content:center; gap:3px; height:20px; margin-top:0.6rem; }
+    .aid-meter i{ width:4px; height:3px; border-radius:2px; background:#d3dcd9; transition:height .12s ease, background .3s ease; }
+    .aid-demo.is-on .aid-meter i{ background:var(--aid-accent); }
+
+    .aid-field{ width:100%; margin-top:0.7rem; }
+    .aid-field-row{ display:flex; justify-content:space-between; align-items:baseline; font-size:0.6rem; font-weight:500; color:var(--ink-soft); margin-bottom:0.3rem; }
+    .aid-field-row b{ font-size:0.68rem; color:var(--ink); font-variant-numeric:tabular-nums; }
+    .aid-modes{ display:flex; gap:3px; padding:3px; border:1px solid var(--line); border-radius:999px; background:#fff; }
+    .aid-mode{
+        flex:1; border:0; background:transparent; border-radius:999px; cursor:pointer;
+        padding:0.28rem 0; font-family:inherit; font-size:0.6rem; font-weight:500; color:var(--ink-soft);
+        transition:background .2s ease, color .2s ease;
+    }
+    .aid-mode:hover{ color:var(--ink); }
+    .aid-mode.on{ background:#16302c; color:#fff; }
+    .aid-mode:focus-visible{ outline:2px solid var(--aid-accent); outline-offset:1px; }
+    #aid-strength{ width:100%; height:4px; accent-color:var(--aid-accent); cursor:pointer; display:block; }
+    .aid-note{ margin-top:0.7rem; font-size:0.7rem; color:var(--ink-soft); text-align:center; }
+
+    @media (max-width:820px){
+        .aid-demo{ grid-template-columns:1fr; justify-items:center; gap:0; }
+        .aid-panel{ width:100%; max-width:420px; }
+        .aid-phone-wrap{ flex-direction:column; order:0; }
+        .aid-link{ width:2px; height:26px; }
+        .aid-link::after{ left:0; top:-60%; width:100%; height:60%; background:linear-gradient(180deg, transparent, var(--aid-accent), transparent); animation-name:aidFlowV; }
+        @keyframes aidFlowV{ to{ top:100%; } }
     }
 
-    .phone-mock{
-        width:168px; height:308px; border-radius:32px; background:#fff;
-        border:3px solid #16302c; box-shadow:0 18px 34px rgba(15,118,110,0.18);
-        display:flex; flex-direction:column; align-items:center; justify-content:space-between;
-        padding:1.6rem 1rem 1.4rem; position:relative; flex-shrink:0;
-    }
-    .phone-notch{ position:absolute; top:9px; left:50%; transform:translateX(-50%); width:46px; height:6px; border-radius:4px; background:#e3ece9; }
-    .mic-icon{ width:46px; height:46px; border-radius:50%; background:var(--aid-accent); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative; z-index:2; }
-    .mic-icon svg{ width:22px; height:22px; }
+    /* ---------- Page intro: title, rule and tagline rise in on load ---------- */
+    .intro-item{ opacity:0; transform:translateY(16px); animation:introIn .7s ease forwards; }
+    .intro-rule{ width:64px; height:2px; margin:1.4rem auto; background:#1e293b; transform:scaleX(0); animation:ruleIn .7s ease .35s forwards; }
+    @keyframes introIn{ to{ opacity:1; transform:none; } }
+    @keyframes ruleIn{ to{ transform:scaleX(1); } }
 
-    .wave-stage{ position:relative; width:150px; height:150px; display:flex; align-items:center; justify-content:center; }
-    .wave-ring{
-        position:absolute; border-radius:50%; border:2px solid var(--aid-accent);
-        opacity:0; animation: waveOut 2.4s ease-out infinite;
+    /* ---------- Transition between projects: a line draws down, lands on a dot, the next project rises in ---------- */
+    .proj-link{ display:flex; flex-direction:column; align-items:center; padding-top:2.5rem; }
+    .proj-link-line{
+        width:2px; height:84px; background:linear-gradient(180deg, rgba(30,41,59,0) 0%, #1e293b 100%);
+        transform:scaleY(0); transform-origin:top; transition:transform .8s cubic-bezier(.2,.7,.2,1);
     }
-    .wave-ring:nth-child(1){ width:60px; height:60px; animation-delay:0s; }
-    .wave-ring:nth-child(2){ width:60px; height:60px; animation-delay:0.6s; }
-    .wave-ring:nth-child(3){ width:60px; height:60px; animation-delay:1.2s; }
-    @keyframes waveOut{
-        0%   { width:50px; height:50px; opacity:0.55; }
-        80%  { width:150px; height:150px; opacity:0; }
-        100% { width:150px; height:150px; opacity:0; }
+    .proj-link-dot{
+        width:10px; height:10px; border-radius:50%; background:#1e293b; box-shadow:0 0 0 5px rgba(30,41,59,0.1);
+        transform:scale(0); transition:transform .4s cubic-bezier(.3,1.6,.5,1) .65s;
     }
-    #aid-frame.paused .wave-ring{ animation-play-state: paused; opacity:0.12; }
-
-    .aid-env-label{ font-size:0.64rem; color:#0f766e; font-weight:600; letter-spacing:0.02em; text-align:center; margin-top:0.35rem; }
-
-    .start-btn{
-        border:none; border-radius:999px; padding:0.55rem 1.6rem; font-size:0.78rem; font-weight:700;
-        background:var(--aid-accent); color:#fff; letter-spacing:0.03em; cursor:pointer;
-        transition:background .2s ease, transform .15s ease;
-    }
-    .start-btn:active{ transform:scale(0.96); }
-    .start-btn.is-listening{ background:#dc6b4a; }
-
-    .wearer-illustration{ display:flex; flex-direction:column; align-items:center; gap:0.85rem; flex-shrink:0; }
-    .wearer-figure{ position:relative; width:170px; }
-    .speech-bubble{
-        position:relative; background:#fff; border:1.5px solid #16302c; border-radius:18px;
-        padding:0.7rem 1rem; font-size:0.82rem; font-weight:600; color:var(--ink);
-        max-width:170px; text-align:center; line-height:1.3;
-        opacity:0; transform:translateY(8px); pointer-events:none;
-        transition:opacity .4s ease, transform .4s ease;
-    }
-    .speech-bubble.show{ opacity:1; transform:translateY(0); }
-    .speech-bubble::after{
-        content:''; position:absolute; left:50%; bottom:-9px; transform:translateX(-50%);
-        border-width:9px 7px 0 7px; border-style:solid; border-color:#16302c transparent transparent transparent;
-    }
-    .speech-bubble::before{
-        content:''; position:absolute; left:50%; bottom:-6.5px; transform:translateX(-50%); z-index:1;
-        border-width:7.5px 5.5px 0 5.5px; border-style:solid; border-color:#fff transparent transparent transparent;
+    .proj-link.is-visible .proj-link-line{ transform:scaleY(1); }
+    .proj-link.is-visible .proj-link-dot{ transform:scale(1); animation:dotPulse 2.8s ease-out 1.2s infinite; }
+    @keyframes dotPulse{
+        0%  { box-shadow:0 0 0 5px rgba(30,41,59,0.1), 0 0 0 0 rgba(30,41,59,0.25); }
+        100%{ box-shadow:0 0 0 5px rgba(30,41,59,0.1), 0 0 0 16px rgba(30,41,59,0); }
     }
 
-    .reveal{ opacity:0; transform:translateY(16px); transition:opacity .6s ease, transform .6s ease; }
-    .reveal.is-visible{ opacity:1; transform:translateY(0); }
+    /* each project arrives in order: label, title, tags, points one by one, then its visual */
+    .proj-block > *, .proj-block > ul > li{ opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.7,.2,1); }
+    .proj-block > ul{ opacity:1; transform:none; }
+    .proj-block.is-visible > *, .proj-block.is-visible > ul > li{ opacity:1; transform:none; }
+    .proj-block > :nth-child(1){ transition-delay:0s; }
+    .proj-block > :nth-child(2){ transition-delay:.1s; }
+    .proj-block > :nth-child(3){ transition-delay:.22s; }
+    .proj-block > :nth-child(4){ transition-delay:.3s; }
+    .proj-block > ul > li:nth-child(1){ transition-delay:.38s; }
+    .proj-block > ul > li:nth-child(2){ transition-delay:.48s; }
+    .proj-block > ul > li:nth-child(3){ transition-delay:.58s; }
+    .proj-block > ul > li:nth-child(4){ transition-delay:.68s; }
+    .proj-block > ul > li:nth-child(5){ transition-delay:.78s; }
+    .proj-block > ul ~ *{ transition-delay:.9s; }
+    .proj-block > ul ~ * ~ *{ transition-delay:1.02s; }
 
     /* ---------- 3D Rehab Training: series of demo videos, lined up like the photo strip ---------- */
     .rehab-video-grid{
@@ -229,8 +324,9 @@
     .rehab-video-embed iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
 
     @media (prefers-reduced-motion: reduce){
-        .reveal{ opacity:1; transform:none; transition:none; }
-        .wave-ring{ animation:none; opacity:0.3; }
+        .intro-item, .intro-rule{ animation:none; opacity:1; transform:none; }
+        .proj-link-line, .proj-link-dot, .proj-block > *, .proj-block > ul > li{ transition:none; opacity:1; transform:none; }
+        .proj-link.is-visible .proj-link-dot, .aid-ring, .aid-link::after, .aid-caret, .aid-status-dot{ animation:none !important; }
         .rp-live{ animation:none; }
     }
 </style>
@@ -259,11 +355,13 @@
 
 <main class="pt-32 pb-24 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
-    <header class="text-center max-w-3xl mx-auto space-y-4">
-            <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">My Projects</h1>
-            <p>---</p>
-            <p class="text-lg text-slate-600" style="font-family: 'Times New Roman', Times, serif;">Software builds, tools, and things I've tinkered with.</p><br>
-        </header>
+    <header class="text-center max-w-3xl mx-auto">
+        <h1 class="intro-item text-4xl md:text-5xl font-bold tracking-tight text-slate-900">My Projects</h1>
+        <div class="intro-rule" aria-hidden="true"></div>
+        <p class="intro-item text-lg text-slate-600" style="font-family: 'Times New Roman', Times, serif; animation-delay: .5s;">Software builds, tools, and things I've tinkered with.</p>
+    </header>
+
+    <div class="proj-link" aria-hidden="true"><span class="proj-link-line"></span><span class="proj-link-dot"></span></div>
 
     <!-- ============ 01 — SMART RING ============ -->
     <section class="proj-block reveal">
@@ -283,14 +381,14 @@
             <!-- your two Three.js models (built into the smart-ring/ folder), switched with tabs -->
             <div class="ring-viewer">
                 <div class="ring-tabs" role="tablist" aria-label="Smart ring views">
-                    <button type="button" role="tab" class="ring-tab on" aria-selected="true" data-page="ring" data-src="smart-ring/index.html?embed">The ring</button>
-                    <button type="button" role="tab" class="ring-tab" aria-selected="false" data-page="demo" data-src="smart-ring/demo.html?embed">How it works</button>
+                    <button type="button" role="tab" class="ring-tab on" aria-selected="true" data-page="demo" data-src="smart-ring/demo.html?embed">How it works</button>
+                    <button type="button" role="tab" class="ring-tab" aria-selected="false" data-page="ring" data-src="smart-ring/index.html?embed">The ring</button>
                 </div>
                 <div id="ring-frame">
-                    <iframe id="ring-iframe" src="smart-ring/index.html?embed" title="Interactive 3D model of the smart ring" loading="lazy"></iframe>
+                    <iframe id="ring-iframe" src="smart-ring/demo.html?embed" title="Interactive 3D demo of how the smart ring works" loading="lazy"></iframe>
                     <div class="ring-loading">Loading 3D model&hellip;</div>
                 </div>
-                <p class="ring-caption" id="ring-caption">Drag to rotate!!</p>
+                <p class="ring-caption" id="ring-caption">Tap <b>the screen</b> and switch the mode</p>
             </div>
 
             <!-- companion app: same live readings, tap a metric to push it to the ring -->
@@ -316,7 +414,7 @@
                     <div class="rp-risk-label"><b id="rp-risk-level" style="color:#15803d;">Low</b> risk &middot; AI prediction</div>
                 </div>
                 <div class="rp-list" id="rp-list"></div>
-                <div class="rp-foot" id="rp-foot">Tap <span class="rp-ringmark"></span> to show it on your ring</div>
+                <div class="rp-foot" id="rp-foot">Tap <span class="rp-ringmark"></span> to see how the ring measures it</div>
             </div>
         </div>
 
@@ -332,9 +430,167 @@
         </div>
     </section>
 
-    <!-- ============ 02 — ESSAYBRAIN ============ -->
+    <div class="proj-link" aria-hidden="true"><span class="proj-link-line"></span><span class="proj-link-dot"></span></div>
+
+    <!-- ============ 02 — HEARING AID APP ============ -->
     <section class="proj-block reveal">
-        <span class="idx" style="color:var(--brain-accent);">02 / Discord Bot</span>
+        <span class="idx" style="color:var(--aid-accent);">02 / Research Applied</span>
+        <h2 class="display proj-title mt-2" style="color:var(--aid-accent);">Hearing Aid App</h2>
+        <p class="text-sm mt-2" style="color:var(--ink-soft); font-family:'Times New Roman',Times,serif;">2026&ndash;2027 &middot; Supervisor: Dr. Yuan-Chia Chu, Senior Information Engineer, Taipei Veterans General Hospital</p>
+        <div class="flex flex-wrap gap-2 mt-5 mb-6">
+            <span class="tag">Android Studio</span>
+            <span class="tag">MetricGAN+</span>
+            <span class="tag">NeMo</span>
+        </div>
+        <ul style="font-family:'Times New Roman',Times,serif; color:#374151;" class="list-disc pl-6 space-y-3 text-lg leading-relaxed max-w-2xl">
+            <li>Designed and prototyped the model pipeline and application interface for a hearing aid app using Android Studio.</li>
+            <li>Improve system denoising level and human voiceprint accuracy using pretrained speech-enhancement model MetricGAN+／NeMo.</li>
+            <li>Working on refining and testing the process on the website version and mobile application update with the latest model.</li>
+        </ul>
+
+        <!-- interactive demo: noisy room -> the app -> clean speech in the ear (all values simulated) -->
+        <div id="aid-frame" class="aid-demo is-off">
+            <!-- 1. what the microphone picks up -->
+            <div class="aid-panel">
+                <div class="aid-panel-head">
+                    <span class="aid-step">1</span>
+                    <div>
+                        <div class="aid-panel-title">Around you</div>
+                        <div class="aid-panel-sub">What the microphone picks up</div>
+                    </div>
+                </div>
+                <canvas id="aid-in" class="aid-wave" aria-label="Animated waveform of speech mixed with background noise"></canvas>
+                <div class="aid-legend">
+                    <span><i style="background:var(--aid-accent);"></i>Speech</span>
+                    <span><i style="background:#c3c9cf;"></i>Background noise</span>
+                </div>
+            </div>
+
+            <!-- 2. the app -->
+            <div class="aid-phone-wrap">
+                <span class="aid-link aid-link-in" aria-hidden="true"></span>
+                <div class="aid-phone" aria-label="Hearing aid app mockup">
+                    <div class="aid-notch"></div>
+                    <div class="aid-phone-head">
+                        <div class="aid-app-title">Hearing Aid</div>
+                        <div class="aid-app-status"><span class="aid-status-dot"></span><span id="aid-status">Tap to start</span></div>
+                    </div>
+
+                    <button type="button" class="aid-mic" id="start-btn" aria-pressed="false" aria-label="Start listening">
+                        <span class="aid-ring"></span><span class="aid-ring"></span><span class="aid-ring"></span>
+                        <span class="aid-mic-core">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"></path>
+                                <path d="M19 11a7 7 0 0 1-14 0"></path>
+                                <line x1="12" y1="18" x2="12" y2="22"></line>
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="aid-btn-label" id="aid-btn-label">START</div>
+
+                    <div class="aid-meter" id="aid-meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+                    <div class="aid-field">
+                        <div class="aid-field-row"><span>Environment</span></div>
+                        <div class="aid-modes" role="group" aria-label="Environment">
+                            <button type="button" class="aid-mode on" data-noise="0.55">Café</button>
+                            <button type="button" class="aid-mode" data-noise="0.9">Street</button>
+                            <button type="button" class="aid-mode" data-noise="0.25">Home</button>
+                        </div>
+                    </div>
+                    <div class="aid-field">
+                        <div class="aid-field-row"><label for="aid-strength">Noise reduction</label><b id="aid-strength-val">80%</b></div>
+                        <input type="range" id="aid-strength" min="20" max="95" value="80" />
+                    </div>
+                </div>
+                <span class="aid-link aid-link-out" aria-hidden="true"></span>
+            </div>
+
+            <!-- 3. what the wearer hears -->
+            <div class="aid-panel">
+                <div class="aid-panel-head">
+                    <span class="aid-step">2</span>
+                    <div>
+                        <div class="aid-panel-title">In your ear</div>
+                        <div class="aid-panel-sub" id="aid-out-sub">Unprocessed sound</div>
+                    </div>
+                    <svg class="aid-earbud" viewBox="0 0 32 32" aria-hidden="true">
+                        <path d="M11 4a8 8 0 0 0-8 8c0 3 1.6 5.2 3.6 6.6V25a3.5 3.5 0 0 0 7 0v-6.2A8 8 0 0 0 11 4z" fill="#fff" stroke="currentColor" stroke-width="1.8"/>
+                        <circle cx="10.5" cy="12" r="2.6" fill="currentColor"/>
+                        <path d="M21 9a6.5 6.5 0 0 1 0 9M25 6a11 11 0 0 1 0 15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" class="aid-earbud-waves"/>
+                    </svg>
+                </div>
+                <canvas id="aid-out" class="aid-wave" aria-label="Animated waveform of the sound after noise reduction"></canvas>
+                <div class="aid-caption" id="speech-bubble"><span id="aid-caption-text">Hard to follow the conversation&hellip;</span></div>
+                <div class="aid-stat"><span>Background noise</span><b id="aid-noise-val">unchanged</b></div>
+            </div>
+        </div>
+
+        <!-- the pipeline behind the demo -->
+        <div class="ring-flow">
+            <span class="tag">Microphone</span>
+            <span class="flow-arrow" style="color:var(--aid-accent);">&rarr;</span>
+            <span class="tag">Speech enhancement &middot; MetricGAN+ / NeMo</span>
+            <span class="flow-arrow" style="color:var(--aid-accent);">&rarr;</span>
+            <span class="tag">Voiceprint matching</span>
+            <span class="flow-arrow" style="color:var(--aid-accent);">&rarr;</span>
+            <span class="tag">Earphone</span>
+        </div>
+        <p class="aid-note">Interactive illustration with simulated sound, not live audio.</p>
+    </section>
+
+    <div class="proj-link" aria-hidden="true"><span class="proj-link-line"></span><span class="proj-link-dot"></span></div>
+
+    <!-- ============ 03 — 3D REHABILITATION TRAINING SYSTEM ============ -->
+    <section class="proj-block reveal">
+        <span class="idx" style="color:var(--rehab-accent);">03 / Research Applied</span>
+        <h2 class="display proj-title mt-2" style="color:var(--rehab-accent);">3D Rehabilitation Educational / Home-based Training System</h2>
+        <div class="flex flex-wrap gap-2 mt-5 mb-6">
+            <span class="tag">Blender</span>
+            <span class="tag">Unity</span>
+            <span class="tag">MediaPipe</span>
+        </div>
+        <ul style="font-family:'Times New Roman',Times,serif; color:#374151;" class="list-disc pl-6 space-y-3 text-lg leading-relaxed max-w-2xl">
+            <li>Created 3D model avatars with Blender, Unity, or Unreal Engine to demonstrate rehabilitation exercises for the Department of Physical Medicine and Rehabilitation.</li>
+            <li>Shadowed rehabilitation patients in hospital and deconstructed movements into distinct steps to plan the animation pipeline, defined and adjusted joint angles, movement sequences, and speed.</li>
+            <li>Produced animation instructional videos to provide patients with repeated viewing and practice movements at home.</li>
+            <li>Planning to leverage camera pose estimation, such as MediaPipe／OpenPose, to provide patients with just-in-time guidance of movements.</li>
+        </ul>
+
+        <div class="flex flex-row flex-wrap gap-4 py-2 mt-4">
+            <img src="https://i.pinimg.com/736x/07/5b/c8/075bc8107cc55dbe0943478875e16c5b.jpg" alt="Photo 1" referrerpolicy="no-referrer" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+        </div>
+
+        <!-- demo video series: lined up left-to-right like the photo strip above -->
+        <div class="rehab-video-grid mt-6 hide-scroll" style="overflow-x:auto; flex-wrap:nowrap;">
+            <div class="rehab-video-card">
+                <div class="rehab-video-embed">
+                    <iframe src="https://www.youtube.com/embed/G3IDe_n94NI" title="Rehab training demo 1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                </div>
+            </div>
+            <div class="rehab-video-card">
+                <div class="rehab-video-embed">
+                    <iframe src="https://www.youtube.com/embed/gW2TnZbsJOA" title="Rehab training demo 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                </div>
+            </div>
+            <div class="rehab-video-card">
+                <div class="rehab-video-embed">
+                    <iframe src="https://www.youtube.com/embed/pxeROAQsAyg" title="Rehab training demo 3" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                </div>
+            </div>
+            <div class="rehab-video-card">
+                <div class="rehab-video-embed">
+                    <iframe src="https://www.youtube.com/embed/rjQcDgfeapg" title="Rehab training demo 4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="proj-link" aria-hidden="true"><span class="proj-link-line"></span><span class="proj-link-dot"></span></div>
+
+    <!-- ============ 04 — ESSAYBRAIN ============ -->
+    <section class="proj-block reveal">
+        <span class="idx" style="color:var(--brain-accent);">04 / Discord Bot</span>
         <h2 class="display proj-title mt-2" style="color:var(--brain-accent);">EssayBrain</h2>
         <div class="flex flex-wrap gap-2 mt-5 mb-6">
             <span class="tag">Python</span>
@@ -370,116 +626,6 @@
                 </div>
             </div>
             <span class="tap-affordance" id="tap-affordance">Tap to continue</span>
-        </div>
-    </section>
-
-    <!-- ============ 03 — HEARING AID APP ============ -->
-    <section class="proj-block reveal">
-        <span class="idx" style="color:var(--aid-accent);">03 / Research Applied</span>
-        <h2 class="display proj-title mt-2" style="color:var(--aid-accent);">Hearing Aid App</h2>
-        <p class="text-sm mt-2" style="color:var(--ink-soft); font-family:'Times New Roman',Times,serif;">2026&ndash;2027 &middot; Supervisor: Dr. Yuan-Chia Chu, Senior Information Engineer, Taipei Veterans General Hospital</p>
-        <div class="flex flex-wrap gap-2 mt-5 mb-6">
-            <span class="tag">Android Studio</span>
-            <span class="tag">MetricGAN+</span>
-            <span class="tag">NeMo</span>
-        </div>
-        <ul style="font-family:'Times New Roman',Times,serif; color:#374151;" class="list-disc pl-6 space-y-3 text-lg leading-relaxed max-w-2xl">
-            <li>Designed and prototyped the model pipeline and application interface for a hearing aid app using Android Studio.</li>
-            <li>Improve system denoising level and human voiceprint accuracy using pretrained speech-enhancement model MetricGAN+／NeMo.</li>
-            <li>Working on refining and testing the process on the website version and mobile application update with the latest model.</li>
-        </ul>
-
-        <div id="aid-frame" class="visual-frame mt-10">
-            <!-- iPhone mockup: mic icon, soft dynamic wave rings, START/STOP -->
-            <div class="phone-mock">
-                <div class="phone-notch"></div>
-                <div class="mic-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3z"></path>
-                        <path d="M19 11a7 7 0 0 1-14 0"></path>
-                        <line x1="12" y1="18" x2="12" y2="22"></line>
-                    </svg>
-                </div>
-                <div class="wave-stage" id="wave-stage">
-                    <div class="wave-ring"></div>
-                    <div class="wave-ring"></div>
-                    <div class="wave-ring"></div>
-                </div>
-                <div>
-                    <div class="aid-env-label">Environment Sound</div>
-                    <div class="flex justify-center mt-3">
-                        <button class="start-btn" id="start-btn">START</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- wearer illustration: speech bubble above the head, earphone label leader-lined to the actual device -->
-            <div class="wearer-illustration">
-                <div class="speech-bubble" id="speech-bubble">I understand what people said</div>
-                <div class="wearer-figure">
-                    <svg viewBox="0 0 220 170" width="195" height="151">
-                        <!-- shoulders -->
-                        <path d="M20,168 C20,120 45,108 75,108 C105,108 130,120 130,168 Z" fill="#16302c"/>
-                        <!-- head -->
-                        <circle cx="75" cy="58" r="42" fill="#f4c9a3"/>
-                        <!-- simple hair -->
-                        <path d="M33,52 C33,20 60,10 75,10 C95,10 117,24 117,52 C117,40 104,30 90,30 C90,42 78,46 70,44 C58,41 50,30 40,34 C34,37 33,45 33,52 Z" fill="#16302c"/>
-                        <!-- ear + smart earphone (the actual device this label points to) -->
-                        <circle cx="112" cy="62" r="14" fill="#f4c9a3"/>
-                        <circle cx="114" cy="60" r="9" fill="#16302c"/>
-                        <circle cx="114" cy="60" r="4" fill="#dc6b4a"/>
-                        <!-- leader line from the earphone device to its label -->
-                        <line x1="119" y1="55" x2="150" y2="22" stroke="#b91c1c" stroke-width="1.5"/>
-                        <circle cx="119" cy="55" r="2" fill="#b91c1c"/>
-                        <text x="153" y="20" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#b91c1c">Ear Phone</text>
-                    </svg>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ============ 04 — 3D REHABILITATION TRAINING SYSTEM ============ -->
-    <section class="proj-block reveal">
-        <span class="idx" style="color:var(--rehab-accent);">04 / Research Applied</span>
-        <h2 class="display proj-title mt-2" style="color:var(--rehab-accent);">3D Rehabilitation Educational / Home-based Training System</h2>
-        <div class="flex flex-wrap gap-2 mt-5 mb-6">
-            <span class="tag">Blender</span>
-            <span class="tag">Unity</span>
-            <span class="tag">MediaPipe</span>
-        </div>
-        <ul style="font-family:'Times New Roman',Times,serif; color:#374151;" class="list-disc pl-6 space-y-3 text-lg leading-relaxed max-w-2xl">
-            <li>Created 3D model avatars with Blender, Unity, or Unreal Engine to demonstrate rehabilitation exercises for the Department of Physical Medicine and Rehabilitation.</li>
-            <li>Shadowed rehabilitation patients in hospital and deconstructed movements into distinct steps to plan the animation pipeline, defined and adjusted joint angles, movement sequences, and speed.</li>
-            <li>Produced animation instructional videos to provide patients with repeated viewing and practice movements at home.</li>
-            <li>Planning to leverage camera pose estimation, such as MediaPipe／OpenPose, to provide patients with just-in-time guidance of movements.</li>
-        </ul>
-
-        <div class="flex flex-row flex-wrap gap-4 py-2 mt-4">
-            <img src="https://i.pinimg.com/736x/07/5b/c8/075bc8107cc55dbe0943478875e16c5b.jpg" alt="Photo 1" referrerpolicy="no-referrer" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
-          
-
-        <!-- demo video series: lined up left-to-right like the photo strip above -->
-        <div class="rehab-video-grid mt-6 hide-scroll" style="overflow-x:auto; flex-wrap:nowrap;">
-            <div class="rehab-video-card">
-                <div class="rehab-video-embed">
-                    <iframe src="https://www.youtube.com/embed/G3IDe_n94NI" title="Rehab training demo 1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-                </div>
-            </div>
-            <div class="rehab-video-card">
-                <div class="rehab-video-embed">
-                    <iframe src="https://www.youtube.com/embed/gW2TnZbsJOA" title="Rehab training demo 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-                </div>
-            </div>
-            <div class="rehab-video-card">
-                <div class="rehab-video-embed">
-                    <iframe src="https://www.youtube.com/embed/pxeROAQsAyg" title="Rehab training demo 3" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-                </div>
-            </div>
-            <div class="rehab-video-card">
-                <div class="rehab-video-embed">
-                    <iframe src="https://www.youtube.com/embed/rjQcDgfeapg" title="Rehab training demo 4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
-                </div>
-            </div>
         </div>
     </section>
 
@@ -560,7 +706,7 @@ window.RingDemo = (function(){
     };
     var ORDER = ['steps','hr','spo2','temp','sleep'];
     var rows = {};
-    var page = 'ring';     // which model is in the frame
+    var page = 'demo';     // which model is in the frame ("How it works" opens first)
     var focus = 'hr';      // metric the phone is pushing to the ring
 
     ORDER.forEach(function(k){
@@ -685,7 +831,7 @@ window.RingDemo = (function(){
     }
 
     render();
-    highlight(focus);
+    highlight(page === 'ring' ? focus : null);
     tickClock();
     setInterval(tickClock, 10000);
 })();
@@ -694,20 +840,20 @@ window.RingDemo = (function(){
 <script>
 /* ---------- scroll reveal ---------- */
 (function(){
-    var els = document.querySelectorAll('.reveal');
+    var els = document.querySelectorAll('.reveal, .proj-link');
     if('IntersectionObserver' in window){
         var io = new IntersectionObserver(function(entries){
             entries.forEach(function(e){
                 if(e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); }
             });
-        }, {threshold:0.12});
+        }, {threshold:0.08, rootMargin:'0px 0px -8% 0px'});
         els.forEach(function(el){ io.observe(el); });
     } else {
         els.forEach(function(el){ el.classList.add('is-visible'); });
     }
 })();
 
-/* ================= 02 — Discord-style tap-to-advance chat ================= */
+/* ================= EssayBrain: Discord-style tap-to-advance chat ================= */
 (function(){
     var BOT_AVATAR = 'https://i.pinimg.com/736x/c3/fe/dd/c3fedd3796723963df4ee4a10340eb55.jpg';
 
@@ -830,22 +976,150 @@ window.RingDemo = (function(){
     advance();
 })();
 
-/* ================= 03 — Hearing Aid App: START/STOP toggle ================= */
+/* ================= Hearing Aid App: simulated noise-reduction demo =================
+   Two bar waveforms share one made-up signal: speech (teal) plus background noise (grey).
+   Left = what the microphone hears. Right = the same sound after the app removes noise. */
 (function(){
-    var btn = document.getElementById('start-btn');
     var frame = document.getElementById('aid-frame');
-    var bubble = document.getElementById('speech-bubble');
-    var listening = false;
-    frame.classList.add('paused'); // idle until pressed
+    var btn = document.getElementById('start-btn');
+    var cIn = document.getElementById('aid-in'), cOut = document.getElementById('aid-out');
+    if(!frame || !btn || !cIn || !cOut) return;
 
-    btn.addEventListener('click', function(){
-        listening = !listening;
-        btn.textContent = listening ? 'STOP' : 'START';
-        btn.classList.toggle('is-listening', listening);
-        frame.classList.toggle('paused', !listening);
-        // the app has to actually be listening before it can show what it understood
-        bubble.classList.toggle('show', listening);
+    var statusEl = document.getElementById('aid-status');
+    var btnLabel = document.getElementById('aid-btn-label');
+    var outSub = document.getElementById('aid-out-sub');
+    var captionEl = document.getElementById('aid-caption-text');
+    var noiseVal = document.getElementById('aid-noise-val');
+    var slider = document.getElementById('aid-strength');
+    var sliderVal = document.getElementById('aid-strength-val');
+    var meter = document.getElementById('aid-meter').children;
+    var modes = frame.querySelectorAll('.aid-mode');
+
+    var PHRASE = 'I understand what people said';
+    var WORDS = PHRASE.split(' ');
+    var N = 46;                      // bars per waveform
+    var SPEECH = '#0f766e', NOISE = '#c3c9cf';
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var listening = false;
+    var noiseLevel = 0.55;           // set by the Environment buttons
+    var strength = 0.8;              // set by the slider
+    var clean = 0;                   // 0 = unprocessed, 1 = fully applied (eases toward its target)
+    var noise = [], noiseTarget = [];
+    for(var i = 0; i < N; i++){ noise.push(Math.random()); noiseTarget.push(Math.random()); }
+    var lastNoiseAt = 0, captionStart = 0, visible = true;
+
+    function sizeCanvas(c){
+        var dpr = Math.min(window.devicePixelRatio || 1, 2);
+        var w = c.clientWidth, h = c.clientHeight;
+        if(c.width !== Math.round(w * dpr) || c.height !== Math.round(h * dpr)){
+            c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+        }
+        var g = c.getContext('2d');
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        return { g:g, w:w, h:h };
+    }
+    // speech comes in syllable-like bursts that travel across the bars
+    function speechAt(i, t){
+        var p = t * 2.4 - i * 0.2;
+        var env = Math.max(0, Math.sin(p * 0.9) + 0.35 * Math.sin(p * 2.3 + 1.2));
+        return Math.min(1, Math.pow(env, 1.3) * (0.55 + 0.45 * Math.abs(Math.sin(p * 6.1 + i * 0.7))));
+    }
+    function bar(g, x, cy, bw, half, color){
+        if(half < 1) half = 1;
+        var r = Math.min(bw / 2, half);
+        g.fillStyle = color;
+        g.beginPath();
+        if(g.roundRect) g.roundRect(x, cy - half, bw, half * 2, r); else g.rect(x, cy - half, bw, half * 2);
+        g.fill();
+    }
+    function draw(c, t, residual){
+        var s = sizeCanvas(c), g = s.g, w = s.w, h = s.h;
+        g.clearRect(0, 0, w, h);
+        var pad = 10, step = (w - pad * 2) / N, bw = Math.max(2, step * 0.58), cy = h / 2, maxHalf = h / 2 - 8;
+        g.fillStyle = '#e6efec';
+        g.fillRect(pad, cy - 0.5, w - pad * 2, 1);
+        var sum = 0;
+        for(var i = 0; i < N; i++){
+            var sp = speechAt(i, t) * 0.62;
+            var nz = (0.25 + 0.75 * noise[i]) * noiseLevel * 0.55 * residual;
+            var x = pad + i * step + (step - bw) / 2;
+            bar(g, x, cy, bw, (sp + nz) * maxHalf, NOISE);       // noise is the outer part of each bar
+            bar(g, x, cy, bw, Math.max(sp, 0.03) * maxHalf, SPEECH); // speech is the core
+            sum += sp + nz;
+        }
+        return sum / N;
+    }
+    function setMeter(level){
+        for(var i = 0; i < meter.length; i++){
+            var k = 1 - Math.abs(i - (meter.length - 1) / 2) / (meter.length / 2);
+            meter[i].style.height = (3 + (listening ? level * 46 * (0.45 + 0.55 * k) * (0.7 + 0.3 * Math.sin(i * 2.1 + level * 40)) : 0)).toFixed(1) + 'px';
+        }
+    }
+    function renderText(t){
+        var pct = Math.round(strength * 100);
+        sliderVal.textContent = pct + '%';
+        if(!listening){
+            captionEl.textContent = 'Hard to follow the conversation…';
+            noiseVal.textContent = 'unchanged';
+            return;
+        }
+        noiseVal.textContent = '−' + pct + '%';
+        // the caption types the sentence out word by word, holds, then starts again
+        var e = (t - captionStart) % (WORDS.length * 0.42 + 2.6);
+        var shown = Math.min(WORDS.length, Math.floor(e / 0.42) + 1);
+        captionEl.innerHTML = '“' + WORDS.slice(0, shown).join(' ') + (shown === WORDS.length ? '”' : '<span class="aid-caret"></span>');
+    }
+    function frameTick(now){
+        var t = now / 1000;
+        if(now - lastNoiseAt > 90){
+            lastNoiseAt = now;
+            for(var i = 0; i < N; i++) noiseTarget[i] = Math.random();
+        }
+        for(var j = 0; j < N; j++) noise[j] += (noiseTarget[j] - noise[j]) * 0.25;
+        clean += ((listening ? 1 : 0) - clean) * 0.07;
+        var level = draw(cIn, t, 1);
+        draw(cOut, t, 1 - strength * clean);
+        setMeter(level);
+        renderText(t);
+    }
+    function loop(now){
+        if(visible) frameTick(now);
+        requestAnimationFrame(loop);
+    }
+
+    function setListening(on){
+        listening = on;
+        captionStart = performance.now() / 1000;
+        frame.classList.toggle('is-on', on);
+        frame.classList.toggle('is-off', !on);
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.setAttribute('aria-label', on ? 'Stop listening' : 'Start listening');
+        btnLabel.textContent = on ? 'STOP' : 'START';
+        statusEl.textContent = on ? 'Listening · enhancing speech' : 'Tap to start';
+        outSub.textContent = on ? 'After noise reduction' : 'Unprocessed sound';
+        if(reduce){ clean = on ? 1 : 0; frameTick(performance.now()); }
+    }
+    btn.addEventListener('click', function(){ setListening(!listening); });
+    slider.addEventListener('input', function(){
+        strength = slider.value / 100;
+        if(reduce) frameTick(performance.now());
     });
+    modes.forEach(function(m){
+        m.addEventListener('click', function(){
+            modes.forEach(function(x){ x.classList.toggle('on', x === m); });
+            noiseLevel = parseFloat(m.dataset.noise);
+            if(reduce) frameTick(performance.now());
+        });
+    });
+
+    if('IntersectionObserver' in window){
+        new IntersectionObserver(function(en){ visible = en[0].isIntersecting; }).observe(frame);
+    }
+    window.addEventListener('resize', function(){ if(reduce) frameTick(performance.now()); });
+
+    if(reduce) frameTick(1000);          // one still frame, no animation
+    else requestAnimationFrame(loop);
 })();
 
 </script>
