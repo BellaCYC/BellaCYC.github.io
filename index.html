@@ -848,7 +848,7 @@
         stationHitbox.position.copy(stationMount.position);
         stationHitbox.position.y += 1.7 * STATION_SCALE;
         stationHitbox.rotation.y = stationMount.rotation.y;
-        stationHitbox.userData = { target: 'about.html', title: 'ABOUT ME' };
+        stationHitbox.userData = { target: 'projects.html', title: 'PROJECTS'};
         ufoGroup.add(stationHitbox);
         interactables.push(stationHitbox);
 
@@ -989,7 +989,7 @@
         const cactusHitbox = new THREE.Mesh(new THREE.BoxGeometry(2, 3, 2), hitboxMat);
         cactusHitbox.position.copy(cactusGroup.position);
         cactusHitbox.position.y += 1.2;
-        cactusHitbox.userData = { target: 'projects.html', title: 'PROJECTS' };
+        cactusHitbox.userData = {target: 'about.html', title: 'ABOUT ME' };
         ufoGroup.add(cactusHitbox);
         interactables.push(cactusHitbox);
 
