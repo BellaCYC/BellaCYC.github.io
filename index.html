@@ -31,6 +31,26 @@
         }
         .reticle-line { width: 1px; height: 30px; background: linear-gradient(to bottom, rgba(138,180,248,0.8), transparent); margin: 0 auto; }
 
+        /* Astronaut's speech bubble (pinned above its helmet from the 3D scene) */
+        #astro-bubble {
+            position: absolute; left: 0; top: 0; z-index: 20; pointer-events: none;
+            opacity: 0; transform: translate(-50%, -100%) translateY(6px) scale(0.92); transform-origin: 50% 100%;
+            transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #astro-bubble.show { opacity: 1; transform: translate(-50%, -100%) translateY(-14px) scale(1); }
+        .astro-bubble-box {
+            position: relative; max-width: min(250px, 70vw); padding: 10px 16px; border-radius: 16px;
+            background: rgba(248, 250, 252, 0.97); color: #0f172a; text-align: center;
+            font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500; line-height: 1.35;
+            border: 1px solid rgba(138, 180, 248, 0.7); box-shadow: 0 10px 30px rgba(2, 6, 23, 0.45), 0 0 18px rgba(138, 180, 248, 0.25);
+        }
+        .astro-bubble-box::after {
+            content: ''; position: absolute; left: 50%; bottom: -8px; width: 14px; height: 14px;
+            background: rgba(248, 250, 252, 0.97); border-right: 1px solid rgba(138, 180, 248, 0.7); border-bottom: 1px solid rgba(138, 180, 248, 0.7);
+            transform: translateX(-50%) rotate(45deg); border-bottom-right-radius: 3px;
+        }
+        .astro-bubble-name { display: block; margin-bottom: 2px; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #2563eb; }
+
         /* Loader */
         #loader { transition: opacity 0.8s; background-color: #020205; }
         .progress-bar { width: 200px; height: 2px; background: #222; margin-top: 1rem; position: relative; overflow: hidden; }
@@ -71,6 +91,11 @@
             <div class="hud-text text-[10px] mt-1 text-blue-400">CLICK TO ENGAGE</div>
         </div>
         <div class="reticle-line"></div>
+    </div>
+
+    <!-- Astronaut guide's speech bubble -->
+    <div id="astro-bubble" role="status" aria-live="polite">
+        <div class="astro-bubble-box"><span class="astro-bubble-name">Bella</span><span id="astro-bubble-text"></span></div>
     </div>
 
     <!-- Static HUD UI -->
@@ -789,7 +814,7 @@
         const look = { yaw: 0, pitch: 0 };
 
         function updateStation(time, dt) {
-            const hovering = hoveredObject === stationHitbox && !isTransitioning;
+            const hovering = (hoveredObject === stationHitbox || astroSay) && !isTransitioning; // also waves back while the astronaut introduces it
             waveAmount += ((hovering ? 1 : 0) - waveAmount) * Math.min(1, dt * 6);
 
             // breathing
@@ -994,6 +1019,419 @@
         interactables.push(cactusHitbox);
 
 
+        // D. THE ASTRONAUT GUIDE - appears after 3 s without any input, walks to the alien's desk
+        //    and tells the visitor what to click. Local axes: y = 0 is the sole of the boots, +Z is forward.
+        const ASTRO_SCALE = 1.5;
+        const ASTRO_SPAWN = V3(-6.7, 0.5, 3.3);   // near the left edge of the deck
+        const ASTRO_GOAL = V3(-3.9, 0.5, 3.9);    // front-left of the desk, clear of the screens
+        const ASTRO_MESSAGE = 'Click the Alien and learn my project!';
+
+        const astro = new THREE.Group();          // placement, heading and size
+        astro.position.copy(ASTRO_SPAWN);
+        astro.visible = false;
+        ufoGroup.add(astro);
+        const astroBody = new THREE.Group();      // bobs up and down with each step
+        astro.add(astroBody);
+
+        const blueMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.55 });
+        const gloveMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 });
+        const treadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.9 });
+
+        // ---------- torso ----------
+        const aTorso = new THREE.Group();
+        astroBody.add(aTorso);
+        const aTorsoMesh = part(new THREE.LatheGeometry([[0, 0.84], [0.2, 0.85], [0.275, 0.93], [0.29, 1.08], [0.315, 1.26], [0.33, 1.42], [0.3, 1.55], [0.22, 1.62], [0, 1.63]].map(p => new THREE.Vector2(p[0], p[1])), 40), suitMat);
+        aTorsoMesh.scale.z = 0.84;
+        aTorso.add(aTorsoMesh);
+        const aHips = part(new THREE.SphereGeometry(0.27, 28, 20), suitMat, 0, 0.92, 0);
+        aHips.scale.set(1.08, 0.72, 0.9);
+        aTorso.add(aHips);
+
+        // belt, buckle, pouches and a tether hook
+        const aBelt = part(new THREE.TorusGeometry(0.285, 0.032, 12, 44), rubberMat, 0, 1.0, 0);
+        aBelt.rotation.x = Math.PI / 2;
+        aBelt.scale.y = 0.86; // the torus lies in XZ after the turn, so its local Y is the body's depth
+        aTorso.add(aBelt, part(new THREE.BoxGeometry(0.1, 0.075, 0.04), steelMat, 0, 1.0, 0.262));
+        for (const sx of [-1, 1]) aTorso.add(part(new THREE.BoxGeometry(0.085, 0.1, 0.06), suitGreyMat, sx * 0.2, 0.97, 0.2));
+        const aHook = part(new THREE.TorusGeometry(0.035, 0.009, 8, 18), steelMat, 0.3, 0.95, 0.06);
+        aHook.rotation.y = Math.PI / 2;
+        aTorso.add(aHook);
+
+        // chest control unit: live screen, switches, dials, status lights, name tag
+        const aChest = new THREE.Group();
+        aChest.position.set(0, 1.3, 0.262);
+        aChest.rotation.x = -0.08;
+        const aScreenTex = canvasTexture(128, 64, (g, w, h) => {
+            g.fillStyle = '#04122a'; g.fillRect(0, 0, w, h);
+            g.fillStyle = '#22c55e'; g.fillRect(8, 10, 46, 8);
+            g.fillStyle = '#38bdf8'; g.fillRect(8, 26, 70, 6); g.fillRect(8, 38, 54, 6); g.fillRect(8, 50, 62, 6);
+            g.strokeStyle = '#fab52b'; g.lineWidth = 5; g.beginPath(); g.arc(102, 34, 16, -Math.PI / 2, Math.PI * 0.9); g.stroke();
+        });
+        const aNameTex = canvasTexture(128, 40, (g, w, h) => {
+            g.fillStyle = '#1d4ed8'; g.fillRect(0, 0, w, h);
+            g.strokeStyle = '#ffffff'; g.lineWidth = 3; g.strokeRect(3, 3, w - 6, h - 6);
+            g.fillStyle = '#ffffff'; g.font = '700 24px Inter, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+            g.fillText('BELLA', w / 2, h / 2 + 1);
+        });
+        aChest.add(
+            part(new THREE.BoxGeometry(0.33, 0.24, 0.085), suitGreyMat),
+            part(new THREE.BoxGeometry(0.3, 0.205, 0.02), darkMat, 0, 0, 0.04),
+            part(new THREE.PlaneGeometry(0.15, 0.075), new THREE.MeshBasicMaterial({ map: aScreenTex }), -0.058, 0.045, 0.052, false),
+            part(new THREE.CylinderGeometry(0.026, 0.026, 0.03, 18).rotateX(Math.PI / 2), steelMat, 0.075, 0.055, 0.055),
+            part(new THREE.CylinderGeometry(0.018, 0.018, 0.03, 14).rotateX(Math.PI / 2), goldMat, 0.123, 0.055, 0.055),
+            part(new THREE.BoxGeometry(0.012, 0.035, 0.03), steelMat, 0.06, -0.045, 0.058),
+            part(new THREE.BoxGeometry(0.012, 0.035, 0.03), steelMat, 0.09, -0.04, 0.058),
+            part(new THREE.BoxGeometry(0.012, 0.035, 0.03), steelMat, 0.12, -0.045, 0.058)
+        );
+        const aLeds = [0x22c55e, 0xfacc15, 0xef4444].map((c, i) => {
+            const led = part(new THREE.SphereGeometry(0.014, 12, 10), new THREE.MeshBasicMaterial({ color: c }), -0.115 + i * 0.04, -0.055, 0.052, false);
+            aChest.add(led);
+            return led;
+        });
+        aTorso.add(aChest);
+        const aName = part(new THREE.PlaneGeometry(0.15, 0.047), new THREE.MeshBasicMaterial({ map: aNameTex }), 0.0, 1.488, 0.292, false);
+        aName.rotation.x = -0.2;
+        aTorso.add(aName);
+        // oxygen hose from the chest unit round to the backpack
+        const aHose = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CubicBezierCurve3(V3(-0.15, 1.22, 0.29), V3(-0.42, 1.12, 0.3), V3(-0.44, 1.2, -0.1), V3(-0.24, 1.25, -0.3)), 28, 0.022, 10), rubberMat);
+        aHose.castShadow = true;
+        aTorso.add(aHose);
+
+        // life-support backpack: body, top cap, vents, side thrusters, antenna with a blinking beacon
+        const aPack = new THREE.Group();
+        aPack.position.set(0, 1.3, -0.36);
+        aPack.add(
+            part(new THREE.BoxGeometry(0.5, 0.7, 0.24), suitMat),
+            part(new THREE.BoxGeometry(0.52, 0.09, 0.26), suitGreyMat, 0, 0.3, 0),
+            part(new THREE.BoxGeometry(0.52, 0.07, 0.26), suitGreyMat, 0, -0.32, 0),
+            part(new THREE.BoxGeometry(0.3, 0.3, 0.02), darkMat, 0, 0.02, -0.125),
+            part(new THREE.BoxGeometry(0.2, 0.05, 0.03), blueMat, 0, 0.3, -0.125)
+        );
+        for (let i = 0; i < 5; i++) aPack.add(part(new THREE.BoxGeometry(0.26, 0.012, 0.03), steelMat, 0, -0.09 + i * 0.055, -0.13, false)); // vent slats
+        for (const sx of [-1, 1]) {
+            aPack.add(part(new THREE.CylinderGeometry(0.045, 0.06, 0.12, 16), steelMat, sx * 0.29, -0.2, 0), part(new THREE.CylinderGeometry(0.03, 0.045, 0.05, 14), darkMat, sx * 0.29, -0.28, 0));
+            aPack.add(part(new THREE.BoxGeometry(0.06, 0.34, 0.1), suitGreyMat, sx * 0.275, 0.08, 0)); // side rails
+        }
+        aPack.add(part(new THREE.CylinderGeometry(0.007, 0.011, 0.36, 8), steelMat, -0.19, 0.53, 0));
+        const aBeacon = part(new THREE.SphereGeometry(0.026, 12, 10), new THREE.MeshBasicMaterial({ color: 0xef4444 }), -0.19, 0.72, 0, false);
+        aPack.add(aBeacon);
+        aTorso.add(aPack);
+        // shoulder straps running over to the pack
+        for (const sx of [-1, 1]) aTorso.add(capsule(V3(sx * 0.2, 1.5, 0.2), V3(sx * 0.22, 1.6, -0.22), 0.03, 0.03, suitGreyMat));
+
+        // neck seal + helmet ring
+        aTorso.add(part(new THREE.CylinderGeometry(0.27, 0.2, 0.07, 36), suitGreyMat, 0, 1.63, 0));
+        const aNeckRing = part(new THREE.TorusGeometry(0.262, 0.032, 12, 44), blueMat, 0, 1.67, 0);
+        aNeckRing.rotation.x = Math.PI / 2;
+        const aNeckRing2 = part(new THREE.TorusGeometry(0.24, 0.016, 8, 40), steelMat, 0, 1.635, 0);
+        aNeckRing2.rotation.x = Math.PI / 2;
+        aTorso.add(aNeckRing, aNeckRing2);
+
+        // ---------- helmet (turns to look around) ----------
+        const aHead = new THREE.Group();
+        aHead.position.set(0, 1.68, 0);
+        aTorso.add(aHead);
+        const HELM_Y = 0.25, HELM_R = 0.365;
+        aHead.add(part(new THREE.SphereGeometry(HELM_R, 48, 36), suitMat, 0, HELM_Y, 0));
+        // mirrored gold visor: the "reflection" (horizon glow, stars, the glowing deck) is painted on
+        const visorTex = canvasTexture(256, 128, (g, w, h) => {
+            const grad = g.createLinearGradient(0, 0, 0, h);
+            grad.addColorStop(0, '#2a1a05'); grad.addColorStop(0.42, '#b9781a'); grad.addColorStop(0.58, '#ffd77a'); grad.addColorStop(0.66, '#e3a233'); grad.addColorStop(1, '#5a3608');
+            g.fillStyle = grad; g.fillRect(0, 0, w, h);
+            g.fillStyle = 'rgba(255,255,255,0.85)';
+            [[30, 18, 1.6], [70, 30, 1.1], [120, 14, 1.4], [165, 26, 1], [210, 16, 1.5], [236, 34, 1], [96, 40, 0.9]].forEach(s => { g.beginPath(); g.arc(s[0], s[1], s[2], 0, Math.PI * 2); g.fill(); });
+            g.fillStyle = 'rgba(125, 211, 252, 0.55)'; g.beginPath(); g.ellipse(128, 86, 70, 9, 0, 0, Math.PI * 2); g.fill(); // the deck's neon ring
+            const sheen = g.createLinearGradient(40, 0, 130, h);
+            sheen.addColorStop(0, 'rgba(255,255,255,0)'); sheen.addColorStop(0.5, 'rgba(255,255,255,0.5)'); sheen.addColorStop(1, 'rgba(255,255,255,0)');
+            g.fillStyle = sheen; g.beginPath(); g.moveTo(52, 0); g.lineTo(96, 0); g.lineTo(60, h); g.lineTo(16, h); g.fill();
+        });
+        const visor = part(new THREE.SphereGeometry(HELM_R + 0.012, 48, 28, Math.PI / 2 - 1.12, 2.24, 0.82, 1.08),
+            new THREE.MeshPhysicalMaterial({ map: visorTex, emissive: 0x3a2204, emissiveMap: visorTex, emissiveIntensity: 0.55, roughness: 0.16, metalness: 0.35, clearcoat: 1.0, clearcoatRoughness: 0.05 }), 0, HELM_Y, 0, false);
+        aHead.add(visor);
+        // visor frame: top and bottom rims
+        for (const th of [0.8, 1.92]) {
+            const r = (HELM_R + 0.014) * Math.sin(th);
+            const rimArc = part(new THREE.TorusGeometry(r, 0.014, 8, 40, 2.3), suitGreyMat, 0, HELM_Y + (HELM_R + 0.014) * Math.cos(th), 0, false);
+            rimArc.rotation.set(Math.PI / 2, 0, Math.PI / 2 - 1.15);
+            aHead.add(rimArc);
+        }
+        // ear caps, comms boom, helmet lamps, top ridge
+        for (const sx of [-1, 1]) {
+            aHead.add(part(new THREE.CylinderGeometry(0.085, 0.095, 0.06, 24).rotateZ(Math.PI / 2), suitGreyMat, sx * (HELM_R + 0.01), HELM_Y - 0.02, 0));
+            aHead.add(part(new THREE.CylinderGeometry(0.045, 0.045, 0.075, 18).rotateZ(Math.PI / 2), blueMat, sx * (HELM_R + 0.02), HELM_Y - 0.02, 0));
+            aHead.add(part(new THREE.BoxGeometry(0.07, 0.06, 0.09), darkMat, sx * 0.25, HELM_Y + 0.3, 0.1));
+        }
+        const aLamps = [-1, 1].map(sx => {
+            const lamp = part(new THREE.CylinderGeometry(0.024, 0.024, 0.02, 14).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xfef9c3 }), sx * 0.25, HELM_Y + 0.3, 0.148, false);
+            aHead.add(lamp);
+            return lamp;
+        });
+        aHead.add(capsule(V3(0, HELM_Y + 0.36, 0.1), V3(0, HELM_Y + 0.3, -0.22), 0.028, 0.022, suitGreyMat));
+        aHead.add(capsule(V3(-HELM_R - 0.02, HELM_Y - 0.02, 0.02), V3(-0.3, HELM_Y - 0.2, 0.26), 0.01, 0.008, darkMat), part(new THREE.SphereGeometry(0.02, 10, 8), darkMat, -0.3, HELM_Y - 0.2, 0.26, false));
+        const aGlint = new THREE.Mesh(new THREE.TorusGeometry(HELM_R + 0.02, 0.008, 6, 24, 0.6), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7, depthWrite: false }));
+        aGlint.position.set(0, HELM_Y, 0);
+        aGlint.rotation.set(0.35, -0.5, 1.0);
+        aHead.add(aGlint);
+
+        // mission patch on the left shoulder + stripes on the right
+        const aPatch = new THREE.Group();
+        aPatch.position.set(0.455, 1.5, 0.09);
+        aPatch.rotation.y = 1.0;
+        const aPatchOrbit = part(new THREE.TorusGeometry(0.03, 0.004, 6, 22), glowCyan, 0, 0, 0.01, false);
+        aPatchOrbit.rotation.x = 1.1;
+        aPatch.add(part(new THREE.CircleGeometry(0.045, 26), new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.6 }), 0, 0, 0, false), part(new THREE.TorusGeometry(0.047, 0.008, 8, 26), goldMat, 0, 0, 0, false), aPatchOrbit, part(new THREE.SphereGeometry(0.015, 10, 8), goldMat, 0, 0, 0.01, false));
+
+        // ---------- two-bone limbs: the end follows a target, the middle joint bends toward a pole ----------
+        function makeLimb(root, L1, L2, r1, r2, mat, ringMat) {
+            const g = new THREE.Group();
+            const unit = () => new THREE.CylinderGeometry(1, 1, 1, 20);
+            const upper = part(unit(), mat), lower = part(unit(), mat);
+            const rootBall = part(new THREE.SphereGeometry(r1 * 1.3, 20, 16), suitGreyMat, root.x, root.y, root.z);
+            const midBall = part(new THREE.SphereGeometry(r1 * 1.05, 18, 14), suitGreyMat);
+            // ribbed joint rings above and below the middle joint, plus a coloured band on the upper segment
+            const ribs = [r1, r1, r2, r2].map(r => part(new THREE.TorusGeometry(r + 0.006, 0.014, 8, 24), suitGreyMat));
+            const band = part(new THREE.TorusGeometry(r1 + 0.006, 0.02, 8, 24), ringMat);
+            g.add(upper, lower, rootBall, midBall, band, ...ribs);
+            astroBody.add(g);
+            const dir = new THREE.Vector3(), mid = new THREE.Vector3(), end = new THREE.Vector3(), tmp = new THREE.Vector3(), poleV = new THREE.Vector3();
+            function seg(mesh, a, b, r) {
+                tmp.subVectors(b, a);
+                const len = tmp.length();
+                mesh.position.copy(a).addScaledVector(tmp, 0.5);
+                mesh.scale.set(r, len, r);
+                mesh.quaternion.setFromUnitVectors(UP, tmp.normalize());
+            }
+            function ring(mesh, a, b, t, q) {
+                mesh.position.copy(a).lerp(b, t);
+                mesh.quaternion.copy(q);
+                mesh.rotateX(Math.PI / 2);
+            }
+            return {
+                root, end, mid, lowerQuat: lower.quaternion,
+                pose(target, pole) {
+                    dir.subVectors(target, root);
+                    const d = Math.min(dir.length(), L1 + L2 - 0.01);
+                    dir.normalize();
+                    const a = (L1 * L1 - L2 * L2 + d * d) / (2 * d);
+                    const h = Math.sqrt(Math.max(L1 * L1 - a * a, 0));
+                    poleV.copy(pole).addScaledVector(dir, -pole.dot(dir)).normalize();
+                    mid.copy(root).addScaledVector(dir, a).addScaledVector(poleV, h);
+                    end.copy(root).addScaledVector(dir, d);
+                    seg(upper, root, mid, r1);
+                    seg(lower, mid, end, r2);
+                    midBall.position.copy(mid);
+                    ring(band, root, mid, 0.42, upper.quaternion);
+                    ring(ribs[0], root, mid, 0.72, upper.quaternion);
+                    ring(ribs[1], root, mid, 0.86, upper.quaternion);
+                    ring(ribs[2], mid, end, 0.16, lower.quaternion);
+                    ring(ribs[3], mid, end, 0.3, lower.quaternion);
+                }
+            };
+        }
+
+        // arms + gloves
+        function makeAstroArm(sx) {
+            const limb = makeLimb(V3(sx * 0.42, 1.5, 0), 0.34, 0.33, 0.092, 0.08, suitMat, blueMat);
+            const hand = new THREE.Group(); // fingers point along +Y
+            const cuff = part(new THREE.TorusGeometry(0.082, 0.024, 10, 26), blueMat, 0, -0.015, 0);
+            cuff.rotation.x = Math.PI / 2;
+            const cuff2 = part(new THREE.TorusGeometry(0.086, 0.012, 8, 24), steelMat, 0, -0.05, 0);
+            cuff2.rotation.x = Math.PI / 2;
+            const palm = part(new THREE.SphereGeometry(0.085, 18, 14), gloveMat, 0, 0.06, 0);
+            palm.scale.set(1.05, 1, 0.7);
+            hand.add(cuff, cuff2, palm);
+            for (let i = -1.5; i <= 1.5; i++) hand.add(capsule(V3(i * 0.038, 0.11, 0), V3(i * 0.046, 0.185 - Math.abs(i) * 0.012, 0), 0.022, 0.019, gloveMat));
+            hand.add(capsule(V3(sx * -0.075, 0.05, 0.01), V3(sx * -0.125, 0.1, 0.03), 0.024, 0.02, gloveMat));
+            astroBody.add(hand);
+            const t = new THREE.Vector3();
+            return {
+                limb,
+                pose(target, pole) {
+                    limb.pose(target, pole);
+                    hand.position.copy(limb.end);
+                    hand.quaternion.setFromUnitVectors(UP, t.subVectors(limb.end, limb.mid).normalize());
+                }
+            };
+        }
+        const aArmR = makeAstroArm(-1), aArmL = makeAstroArm(1);
+        astroBody.add(aPatch);
+
+        // legs + boots
+        function makeAstroLeg(sx) {
+            const limb = makeLimb(V3(sx * 0.15, 0.9, 0), 0.42, 0.42, 0.125, 0.105, suitMat, blueMat);
+            const kneePad = part(new THREE.SphereGeometry(0.095, 16, 12), suitGreyMat);
+            kneePad.scale.set(1, 1, 0.55);
+            const boot = new THREE.Group(); // origin at the ankle
+            const ankleRing = part(new THREE.TorusGeometry(0.108, 0.024, 10, 28), blueMat, 0, 0.02, 0);
+            ankleRing.rotation.x = Math.PI / 2;
+            const shoe = part(new THREE.SphereGeometry(0.13, 22, 16), suitGreyMat, 0, -0.035, 0.055);
+            shoe.scale.set(0.95, 0.72, 1.5);
+            const toe = part(new THREE.SphereGeometry(0.1, 18, 14), suitMat, 0, -0.03, 0.17);
+            toe.scale.set(1.05, 0.7, 0.95);
+            const sole = part(new THREE.BoxGeometry(0.235, 0.04, 0.4), treadMat, 0, -0.105, 0.06);
+            boot.add(ankleRing, shoe, toe, sole);
+            for (let i = 0; i < 5; i++) boot.add(part(new THREE.BoxGeometry(0.24, 0.02, 0.035), darkMat, 0, -0.13, -0.1 + i * 0.08, false)); // treads
+            astroBody.add(kneePad, boot);
+            return {
+                limb, boot,
+                pose(ankle, pitch) {
+                    limb.pose(ankle, V3(sx * 0.05, 0, 1)); // knees bend forward
+                    kneePad.position.copy(limb.mid).add(V3(0, 0, 0.085));
+                    boot.position.copy(ankle);
+                    boot.rotation.x = pitch;
+                }
+            };
+        }
+        const aLegR = makeAstroLeg(-1), aLegL = makeAstroLeg(1);
+
+        // ---------- teleport-in effect ----------
+        const beamMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+        const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 5.5, 32, 1, true), beamMat);
+        beam.position.set(ASTRO_SPAWN.x, ASTRO_SPAWN.y + 2.75, ASTRO_SPAWN.z);
+        const padRingMat = new THREE.MeshBasicMaterial({ color: 0x7dd3fc, transparent: true, opacity: 0, depthWrite: false });
+        const padRing = new THREE.Mesh(new THREE.TorusGeometry(0.9, 0.04, 8, 48), padRingMat);
+        padRing.rotation.x = Math.PI / 2;
+        padRing.position.set(ASTRO_SPAWN.x, ASTRO_SPAWN.y + 0.03, ASTRO_SPAWN.z);
+        ufoGroup.add(beam, padRing);
+
+        // ---------- speech bubble (HTML, pinned above the helmet) ----------
+        const bubble = document.getElementById('astro-bubble');
+        const bubbleText = document.getElementById('astro-bubble-text');
+        const bubbleAnchor = new THREE.Object3D();
+        bubbleAnchor.position.set(0, 2.42, 0);
+        astroBody.add(bubbleAnchor);
+
+        // ---------- behaviour ----------
+        const IDLE_MS = 3000;
+        let lastActivity = performance.now() + 1200;   // start counting once the loader has cleared
+        ['mousemove', 'mousedown', 'wheel', 'keydown', 'touchstart', 'touchmove', 'pointerdown'].forEach(ev =>
+            window.addEventListener(ev, () => { lastActivity = performance.now(); }, { passive: true }));
+
+        let astroState = 'hidden';   // hidden -> appearing -> walking -> arrived
+        let astroT = 0, walkDist = 0, walkAmt = 0, pointAmt = 0, astroSay = false, sayUntil = 0, typed = 0;
+        const walkDir = ASTRO_GOAL.clone().sub(ASTRO_SPAWN).setY(0);
+        const WALK_LEN = walkDir.length();
+        walkDir.normalize();
+        const WALK_SPEED = 1.35;
+        const CYCLE_LEN = 0.8 * ASTRO_SCALE;   // ground covered by one full walk cycle (two steps), so feet don't slide
+        const aTmp = new THREE.Vector3(), aTmp2 = new THREE.Vector3(), aHandR = new THREE.Vector3(), aHandL = new THREE.Vector3(), aFoot = new THREE.Vector3();
+        const easeOutBack = x => 1 + 2.70158 * Math.pow(x - 1, 3) + 1.70158 * Math.pow(x - 1, 2);
+        const turnTo = (cur, want, k) => cur + Math.atan2(Math.sin(want - cur), Math.cos(want - cur)) * k;
+
+        function footTarget(sx, phase, out) {
+            // phase 0..1: first half the foot is planted and slides back, second half it swings forward
+            const p = ((phase % 1) + 1) % 1, S = 0.2 * walkAmt;
+            let z, lift = 0, pitch = 0;
+            if (p < 0.5) { z = S - (p / 0.5) * 2 * S; }
+            else {
+                const s = (p - 0.5) / 0.5, e = s * s * (3 - 2 * s);
+                z = -S + e * 2 * S;
+                lift = Math.sin(s * Math.PI) * 0.11 * walkAmt;
+                pitch = Math.sin(s * Math.PI * 2) * 0.45 * walkAmt;
+            }
+            out.set(sx * 0.15, 0.135 + lift, z);
+            return pitch;
+        }
+
+        function updateAstronaut(time, dt) {
+            const now = performance.now();
+            const idle = now - lastActivity > IDLE_MS;
+
+            if (astroState === 'hidden') {
+                if (idle && !isTransitioning) { astroState = 'appearing'; astroT = 0; astro.visible = true; astro.scale.setScalar(0.001); }
+                else return;
+            }
+            astroT += dt;
+
+            if (astroState === 'appearing') {
+                const k = Math.min(astroT / 0.75, 1);
+                astro.scale.setScalar(ASTRO_SCALE * Math.max(0.001, easeOutBack(k)));
+                astro.rotation.y = Math.atan2(walkDir.x, walkDir.z);
+                beamMat.opacity = 0.32 * Math.sin(Math.min(astroT / 1.1, 1) * Math.PI);
+                padRingMat.opacity = 0.9 * (1 - Math.min(astroT / 1.1, 1));
+                padRing.scale.setScalar(0.6 + astroT * 1.1);
+                if (astroT > 0.95) { astroState = 'walking'; astroT = 0; }
+            } else {
+                beamMat.opacity *= 0.9; padRingMat.opacity *= 0.9;
+            }
+
+            if (astroState === 'walking') {
+                walkAmt += (1 - walkAmt) * Math.min(1, dt * 6);
+                const stepLen = Math.min(WALK_SPEED * dt * walkAmt, WALK_LEN - walkDist);
+                walkDist += stepLen;
+                astro.position.copy(ASTRO_SPAWN).addScaledVector(walkDir, walkDist);
+                astro.rotation.y = turnTo(astro.rotation.y, Math.atan2(walkDir.x, walkDir.z), Math.min(1, dt * 8));
+                if (walkDist >= WALK_LEN - 0.001) { astroState = 'arrived'; astroT = 0; astroSay = true; typed = 0; sayUntil = Infinity; }
+            } else {
+                walkAmt += (0 - walkAmt) * Math.min(1, dt * 7);
+            }
+
+            if (astroState === 'arrived') {
+                // turn to face the visitor
+                aTmp.copy(camera.position); ufoGroup.worldToLocal(aTmp);
+                astro.rotation.y = turnTo(astro.rotation.y, Math.atan2(aTmp.x - astro.position.x, aTmp.z - astro.position.z) + 0.25, Math.min(1, dt * 4));
+                // speak again whenever the visitor has gone quiet; stop shortly after they move
+                if (idle) { if (!astroSay) { astroSay = true; typed = 0; } sayUntil = Infinity; }
+                else if (astroSay && sayUntil === Infinity) sayUntil = now + 1800;
+                if (astroSay && now > sayUntil) astroSay = false;
+            }
+            if (isTransitioning) astroSay = false;
+            pointAmt += (((astroState === 'arrived' && astroSay) ? 1 : 0) - pointAmt) * Math.min(1, dt * 5);
+
+            // ----- pose -----
+            const cycle = walkDist / CYCLE_LEN;
+            const bob = -Math.abs(Math.sin(cycle * Math.PI * 2)) * 0.035 * walkAmt + Math.sin(time * 1.7) * 0.006;
+            astroBody.position.y = bob;
+            astroBody.rotation.z = Math.sin(cycle * Math.PI * 2) * 0.035 * walkAmt;
+            aTorso.rotation.y = Math.sin(cycle * Math.PI * 2) * 0.1 * walkAmt;
+            aTorso.rotation.x = 0.05 * walkAmt;
+            const breath = 1 + Math.sin(time * 1.7) * 0.008;
+            aTorsoMesh.scale.set(breath, 1, 0.84 * breath);
+
+            // legs (feet stay on the deck: undo the body bob)
+            let pitch = footTarget(-1, cycle, aFoot); aFoot.y -= bob; aLegR.pose(aFoot, pitch);
+            pitch = footTarget(1, cycle + 0.5, aFoot); aFoot.y -= bob; aLegL.pose(aFoot, pitch);
+
+            // arms: swing opposite to the legs while walking
+            const swing = Math.sin(cycle * Math.PI * 2) * 0.24 * walkAmt;
+            aHandR.set(-0.5, 0.9, 0.06 + swing);
+            aHandL.set(0.5, 0.9, 0.06 - swing);
+            if (pointAmt > 0.001) {
+                // the arm nearest the alien points at it; the other hand gestures while talking
+                aTmp.set(0, 2.2, -0.7); stationGroup.localToWorld(aTmp); astroBody.worldToLocal(aTmp);
+                aTmp2.copy(aArmL.limb.root);
+                aTmp.sub(aTmp2).normalize().multiplyScalar(0.64).add(aTmp2);
+                aTmp.y += Math.sin(time * 5) * 0.015;
+                aHandL.lerp(aTmp, pointAmt);
+                aTmp2.set(-0.42, 1.18 + Math.sin(time * 3.2) * 0.05, 0.42 + Math.cos(time * 3.2) * 0.03);
+                aHandR.lerp(aTmp2, pointAmt * 0.9);
+            }
+            aArmR.pose(aHandR, aTmp2.set(-0.5, -0.2, -1));
+            aArmL.pose(aHandL, aTmp2.set(0.5, -0.2, -1));
+
+            // helmet: looks along the walk, then glances between the alien and the visitor while talking
+            const talkNod = astroSay ? Math.sin(time * 6) * 0.03 : 0;
+            aHead.rotation.set(talkNod + 0.02, astroState === 'arrived' ? Math.sin(time * 0.9) * 0.28 * (0.4 + 0.6 * pointAmt) - 0.12 * pointAmt : Math.sin(time * 1.1) * 0.08, 0);
+
+            // suit lights
+            aLeds.forEach((led, i) => { led.visible = Math.sin(time * 2.6 + i * 2.1) > -0.5; });
+            aBeacon.visible = (time % 1.2) < 0.6;
+            aLamps.forEach(l => { l.material.color.setHex(astroSay ? 0xffffff : 0xfef9c3); });
+
+            // ----- speech bubble -----
+            if (astroSay && !isTransitioning) {
+                typed = Math.min(ASTRO_MESSAGE.length, typed + dt * 34);
+                bubbleText.textContent = ASTRO_MESSAGE.slice(0, Math.floor(typed));
+                bubbleAnchor.getWorldPosition(aTmp).project(camera);
+                if (aTmp.z < 1) {
+                    bubble.style.left = ((aTmp.x * 0.5 + 0.5) * window.innerWidth) + 'px';
+                    bubble.style.top = ((aTmp.y * -0.5 + 0.5) * window.innerHeight) + 'px';
+                    bubble.classList.add('show');
+                } else bubble.classList.remove('show');
+            } else bubble.classList.remove('show');
+        }
+
+
         // --- INTERACTION & LOGIC ---
         const raycaster = new THREE.Raycaster();
         const mouse = new THREE.Vector2();
@@ -1105,6 +1543,7 @@
 
             // The pilot: typing, breathing, blinking, looking around (and waving when hovered)
             updateStation(time, dt);
+            updateAstronaut(time, dt);   // the guide who walks in after 3 s of no input
             if (frame % 2 === 0) drawEcg(time); // live heart-signal screen, redrawn every other frame
 
             // Passive Environment Animation
