@@ -9,12 +9,53 @@
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #faf9f6; color: #2d3748; }
         .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        /* Style canvas element to fit perfectly inside the card layout */
-        canvas {
-            display: block;
-            width: 100%;
-            background-color: #0f172a;
-            border-radius: 12px;
+        /* ---------- Page intro: title, rule and role line rise in on load ---------- */
+        .intro-item { opacity: 0; transform: translateY(16px); animation: introIn .7s ease forwards; }
+        .intro-rule {
+            width: 64px; height: 2px; margin: 1.4rem auto; background: #1e293b;
+            transform: scaleX(0); animation: ruleIn .7s ease .35s forwards;
+        }
+        @keyframes introIn { to { opacity: 1; transform: none; } }
+        @keyframes ruleIn { to { transform: scaleX(1); } }
+
+        /* ---------- Transition between studies: a line draws down, lands on a dot, the next study rises in ---------- */
+        .study-link { display: flex; flex-direction: column; align-items: center; margin: 0; padding: 0.25rem 0 0.5rem; }
+        .study-link-line {
+            width: 2px; height: 72px;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0) 0%, #1e293b 100%);
+            transform: scaleY(0); transform-origin: top;
+            transition: transform .8s cubic-bezier(.2, .7, .2, 1);
+        }
+        .study-link-dot {
+            width: 10px; height: 10px; border-radius: 50%; background: #1e293b;
+            box-shadow: 0 0 0 5px rgba(30, 41, 59, 0.1);
+            transform: scale(0);
+            transition: transform .4s cubic-bezier(.3, 1.6, .5, 1) .65s;
+        }
+        .study-link.in .study-link-line { transform: scaleY(1); }
+        .study-link.in .study-link-dot { transform: scale(1); }
+
+        .study-kicker {
+            font-size: 0.72rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #64748b;
+            opacity: 0; transform: translateY(10px);
+            transition: opacity .6s ease, transform .6s ease;
+        }
+        /* the heading's underline draws itself from left to right */
+        .study h2 { position: relative; border-bottom-color: transparent; opacity: 0; transform: translateY(12px); transition: opacity .6s ease .1s, transform .6s ease .1s; }
+        .study h2::after {
+            content: ''; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: #cbd5e1;
+            transform: scaleX(0); transform-origin: left;
+            transition: transform .9s cubic-bezier(.2, .7, .2, 1) .25s;
+        }
+        .study-card { opacity: 0; transform: translateY(22px); transition: opacity .7s ease .3s, transform .7s ease .3s; }
+        .study.in .study-kicker, .study.in h2, .study.in .study-card { opacity: 1; transform: none; }
+        .study.in h2::after { transform: scaleX(1); }
+
+        @media (prefers-reduced-motion: reduce) {
+            .intro-item, .intro-rule { animation: none; opacity: 1; transform: none; }
+            .study-link-line, .study-link-dot, .study-kicker, .study h2, .study h2::after, .study-card {
+                transition: none; opacity: 1; transform: none;
+            }
         }
 
         /* ---------- Clickable photos: pop up bigger in a lightbox ---------- */
@@ -406,13 +447,13 @@
         </div>
     </nav>
 
-    <main class="pt-24 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+    <main class="pt-28 pb-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
-        <header class="text-center max-w-3xl mx-auto space-y-4">
-            <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-slate-900">Extracurricular Activities</h1>
-            <div style="font-family: 'Times New Roman', Times, serif;">
+        <header class="text-center max-w-3xl mx-auto">
+            <h1 class="intro-item text-4xl md:text-5xl font-bold tracking-tight text-slate-900">Extracurricular Activities</h1>
+            <div class="intro-rule" aria-hidden="true"></div>
+            <div class="intro-item" style="font-family: 'Times New Roman', Times, serif; animation-delay: .5s;">
                 <span style="font-size: 18px;">
-                    ---<br>
                     <i><strong>2023 - Present</strong></i>
                     <span style="font-size: 16px;">
                         <br>Student Research Assistant, Dept. of Information Management, Taipei Veterans General Hospital (VGH)
@@ -422,15 +463,18 @@
             </div>
         </header>
 
-        <section id="middle-ear" class="space-y-3 scroll-mt-24">
+        <div class="study-link" aria-hidden="true"><span class="study-link-line"></span><span class="study-link-dot"></span></div>
+
+        <section id="middle-ear" class="study space-y-3 scroll-mt-24">
             <div class="space-y-2">
+                <p class="study-kicker">Study 01 / 05</p>
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Middle Ear Disease Diagnosis Research</span>
                 </h2>
             </div>
 
             <div class="grid grid-cols-1 gap-8">
-                <div class="border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
+                <div class="study-card border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
                     <h3 class="text-lg font-semibold italic text-gray-900 mb-3" style="font-family: 'Times New Roman', Times, serif;">
                         Contribution
                     </h3>
@@ -569,15 +613,18 @@
             </div>
         </section>
 
-        <section id="cardiac-signal" class="space-y-3 scroll-mt-24">
+        <div class="study-link" aria-hidden="true"><span class="study-link-line"></span><span class="study-link-dot"></span></div>
+
+        <section id="cardiac-signal" class="study space-y-3 scroll-mt-24">
             <div class="space-y-2">
+                <p class="study-kicker">Study 02 / 05</p>
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Cardiac Signal Analysis Research</span>
                 </h2>
             </div>
 
             <div class="grid grid-cols-1 gap-8">
-                <div class="border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
+                <div class="study-card border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
                     <h3 class="text-lg font-semibold italic text-gray-900 mb-3" style="font-family: 'Times New Roman', Times, serif;">
                         Contribution
                     </h3>
@@ -596,15 +643,18 @@
             </div>
         </section>
 
-        <section id="cancer-gene" class="space-y-3 scroll-mt-24">
+        <div class="study-link" aria-hidden="true"><span class="study-link-line"></span><span class="study-link-dot"></span></div>
+
+        <section id="cancer-gene" class="study space-y-3 scroll-mt-24">
             <div class="space-y-2">
+                <p class="study-kicker">Study 03 / 05</p>
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Cancer Gene Classification Research</span>
                 </h2>
             </div>
 
             <div class="grid grid-cols-1 gap-8">
-                <div class="border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
+                <div class="study-card border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
                     <h3 class="text-lg font-semibold italic text-gray-900 mb-3" style="font-family: 'Times New Roman', Times, serif;">
                         Contribution
                     </h3>
@@ -623,15 +673,18 @@
             </div>
         </section>
 
-        <section id="icu-monitoring" class="space-y-3 scroll-mt-24">
+        <div class="study-link" aria-hidden="true"><span class="study-link-line"></span><span class="study-link-dot"></span></div>
+
+        <section id="icu-monitoring" class="study space-y-3 scroll-mt-24">
             <div class="space-y-2">
+                <p class="study-kicker">Study 04 / 05</p>
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">ICU Vital-Sign Monitoring</span>
                 </h2>
             </div>
 
             <div class="grid grid-cols-1 gap-8">
-                <div class="border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
+                <div class="study-card border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
                     <h3 class="text-lg font-semibold italic text-gray-900 mb-3" style="font-family: 'Times New Roman', Times, serif;">
                         Contribution
                     </h3>
@@ -644,15 +697,18 @@
             </div>
         </section>
 
-        <section id="tumor-board-speech" class="space-y-3 scroll-mt-24">
+        <div class="study-link" aria-hidden="true"><span class="study-link-line"></span><span class="study-link-dot"></span></div>
+
+        <section id="tumor-board-speech" class="study space-y-3 scroll-mt-24">
             <div class="space-y-2">
+                <p class="study-kicker">Study 05 / 05</p>
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Mandarin Tumor-Board Speech</span>
                 </h2>
             </div>
 
             <div class="grid grid-cols-1 gap-8">
-                <div class="border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
+                <div class="study-card border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
                     <h3 class="text-lg font-semibold italic text-gray-900 mb-3" style="font-family: 'Times New Roman', Times, serif;">
                         Contribution
                     </h3>
@@ -661,36 +717,6 @@
                         <li>Assisted in collecting and preparing Mandarin tumor-board meeting audio files at Taipei Veterans General Hospital.</li>
                         <li>Designed and iteratively refined prompts for identifying and attributing clinical opinions to different medical specialties using Gemini-2.5-class.</li>
                     </ul>
-                </div>
-            </div>
-        </section>
-
-
-        <section id="interactive-viz" class="space-y-3 scroll-mt-24">
-            <div class="space-y-2">
-                <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
-                    <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Interactive Visualization</span>
-                </h2>
-            </div>
-
-            <div class="grid grid-cols-1 gap-8">
-                <div class="border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
-                    <!-- Canvas Area -->
-                    <div class="relative overflow-hidden rounded-xl bg-slate-900 p-1">
-                        <canvas id="simulationCanvas" class="w-full h-80"></canvas>
-
-                        <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center bg-slate-900/80 backdrop-blur-md py-2 px-4 rounded-lg border border-slate-800">
-                            <div class="flex items-center gap-3 w-full">
-                                <span class="text-xs font-semibold text-slate-400">Node Density</span>
-                                <input type="range" id="slider-density" min="20" max="100" value="50" oninput="updateDensity(this.value)" class="w-24 md:w-32 accent-blue-500 bg-slate-800 h-1 rounded-lg appearance-none cursor-pointer">
-                                <span id="density-val" class="text-xs text-slate-300 font-mono">50</span>
-                            </div>
-                            <div class="text-right whitespace-nowrap">
-                                <span class="text-[10px] uppercase tracking-wider text-slate-500 block font-bold">Make your own constellation here!</span>
-                                <span class="text-xs text-blue-400 font-medium font-mono">Tap / Move Mouse</span>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </section>
@@ -705,292 +731,17 @@
     </div>
 
     <script>
-        const canvas = document.getElementById('simulationCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // State metrics
-        let particles = [];
-        let ripples = [];
-        let currentMode = 'net'; // 'net' | 'ecg' | 'syn'
-        let mouse = { x: null, y: null, radius: 120 };
-        let density = 50;
-
-        // Resize Canvas dynamically to match container viewport coordinates
-        function resizeCanvas() {
-            const container = canvas.parentElement;
-            canvas.width = container.clientWidth;
-            canvas.height = 320; // Bound strictly to aesthetic visual envelope
-            initParticles();
-        }
-
-        // Particle Class definition to govern movement parameters
-        class Particle {
-            constructor(x, y) {
-                this.x = x || Math.random() * canvas.width;
-                this.y = y || Math.random() * canvas.height;
-                this.baseX = this.x;
-                this.baseY = this.y;
-
-                // Adjust vectors based on selected mode
-                this.vx = (Math.random() - 0.5) * 1.2;
-                this.vy = (Math.random() - 0.5) * 1.2;
-                this.size = Math.random() * 2 + 1.5;
-                this.pulseSpeed = Math.random() * 0.05 + 0.01;
-                this.pulseFactor = 0;
-            }
-
-            update() {
-                // Synaptic Mode: Drifts slowly, pulses opacity
-                // Net Mode: standard Brownian movement
-                // ECG Mode: particles move horizontally mimicking ECG waves
-                if (currentMode === 'ecg') {
-                    this.x += 1.8;
-                    if (this.x > canvas.width) {
-                        this.x = 0;
-                        this.y = Math.random() * canvas.height;
-                    }
-                    // Apply a clinical heartbeat spike curve periodically at horizontal locations
-                    const spikePoint = canvas.width / 2;
-                    const dx = this.x - spikePoint;
-                    if (Math.abs(dx) < 60) {
-                        // Generate dynamic cardiac ECG wave forms using mathematical offsets
-                        this.y = this.baseY - Math.sin(dx * 0.1) * 80 * Math.exp(-Math.pow(dx / 30, 2));
-                    } else {
-                        // Smoothly merge back to baseline height
-                        this.y += (this.baseY - this.y) * 0.1;
-                    }
-                } else {
-                    this.x += this.vx;
-                    this.y += this.vy;
-
-                    // Bounce checks to keep systems inside bounds
-                    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-                    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-                }
-
-                // Interactive Mouse Gravity
-                if (mouse.x !== null && mouse.y !== null) {
-                    const dx = mouse.x - this.x;
-                    const dy = mouse.y - this.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < mouse.radius) {
-                        const force = (mouse.radius - dist) / mouse.radius;
-                        if (currentMode === 'syn') {
-                            // Synapses repel away from user touch interface
-                            this.x -= dx / dist * force * 3;
-                            this.y -= dy / dist * force * 3;
-                        } else {
-                            // Neural Net nodes pull closer to cursor gravity
-                            this.x += dx / dist * force * 2;
-                            this.y += dy / dist * force * 2;
-                        }
-                    }
-                }
-
-                this.pulseFactor += this.pulseSpeed;
-            }
-
-            draw() {
-                ctx.beginPath();
-                let opacity = 0.5 + Math.sin(this.pulseFactor) * 0.4;
-
-                if (currentMode === 'net') {
-                    ctx.fillStyle = `rgba(59, 130, 246, ${opacity})`; // Blue nodes
-                } else if (currentMode === 'ecg') {
-                    ctx.fillStyle = `rgba(16, 185, 129, ${opacity})`; // Emerald nodes
-                } else {
-                    ctx.fillStyle = `rgba(139, 92, 246, ${opacity})`; // Violet nodes
-                }
-
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        // Ripple representation of diagnostic action potential spike events
-        class Ripple {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.radius = 1;
-                this.maxRadius = 150;
-                this.opacity = 1;
-            }
-
-            update() {
-                this.radius += 4;
-                this.opacity = 1 - (this.radius / this.maxRadius);
-            }
-
-            draw() {
-                ctx.beginPath();
-                ctx.strokeStyle = currentMode === 'net'
-                    ? `rgba(59, 130, 246, ${this.opacity * 0.6})`
-                    : currentMode === 'ecg'
-                    ? `rgba(16, 185, 129, ${this.opacity * 0.6})`
-                    : `rgba(139, 92, 246, ${this.opacity * 0.6})`;
-                ctx.lineWidth = 1.5;
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-        }
-
-        // Initialize particle array to match exact density sliders
-        function initParticles() {
-            particles = [];
-            for (let i = 0; i < density; i++) {
-                particles.push(new Particle());
-            }
-        }
-
-        // Draw connections lines between neighboring neural nodes
-        function drawConnections() {
-            const maxDist = currentMode === 'ecg' ? 50 : 90;
-            for (let i = 0; i < particles.length; i++) {
-                for (let j = i + 1; j < particles.length; j++) {
-                    const dx = particles[i].x - particles[j].x;
-                    const dy = particles[i].y - particles[j].y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-
-                    if (dist < maxDist) {
-                        ctx.beginPath();
-                        const alpha = (1 - dist / maxDist) * 0.25;
-
-                        if (currentMode === 'net') {
-                            ctx.strokeStyle = `rgba(59, 130, 246, ${alpha})`;
-                        } else if (currentMode === 'ecg') {
-                            ctx.strokeStyle = `rgba(16, 185, 129, ${alpha * 0.6})`;
-                        } else {
-                            ctx.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
-                        }
-
-                        ctx.lineWidth = 0.8;
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
-                    }
-                }
-
-                // Connect to mouse hover focus pathways
-                if (mouse.x !== null && mouse.y !== null && currentMode === 'net') {
-                    const dx = particles[i].x - mouse.x;
-                    const dy = particles[i].y - mouse.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < mouse.radius) {
-                        ctx.beginPath();
-                        const alpha = (1 - dist / mouse.radius) * 0.4;
-                        ctx.strokeStyle = `rgba(59, 130, 246, ${alpha})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.moveTo(particles[i].x, particles[i].y);
-                        ctx.lineTo(mouse.x, mouse.y);
-                        ctx.stroke();
-                    }
-                }
-            }
-        }
-
-        // Core animation loop executing frame-by-frame draw cycles
-        function animate() {
-            // Apply a minor trailing effect to simulate persistent phosphor scan screens
-            ctx.fillStyle = 'rgba(15, 23, 42, 0.15)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Update and draw diagnostic action ripple fronts
-            ripples = ripples.filter(ripple => {
-                ripple.update();
-                ripple.draw();
-                return ripple.radius < ripple.maxRadius;
-            });
-
-            // Update and draw data node elements
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-
-            // Connect neighboring node pathways
-            drawConnections();
-
-            requestAnimationFrame(animate);
-        }
-
-        // Toggle simulation modes across the clinical AI spectrum
-        function setSimMode(mode) {
-            currentMode = mode;
-
-            // Toggle controller tabs
-            const modes = ['net', 'ecg', 'syn'];
-            modes.forEach(m => {
-                const btn = document.getElementById(`btn-mode-${m}`);
-                if (btn) {
-                    if (m === mode) {
-                        btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-white transition-all shadow-sm";
-                    } else {
-                        btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all";
-                    }
-                }
-            });
-
-            // Reset configurations
-            initParticles();
-        }
-
-        // Adjust node count live via UI input sliding
-        function updateDensity(val) {
-            density = parseInt(val);
-            document.getElementById('density-val').innerText = val;
-            initParticles();
-        }
-
-        // Attach Mouse event triggers
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            mouse.x = e.clientX - rect.left;
-            mouse.y = e.clientY - rect.top;
-        });
-
-        canvas.addEventListener('mouseleave', () => {
-            mouse.x = null;
-            mouse.y = null;
-        });
-
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
-            ripples.push(new Ripple(clickX, clickY));
-        });
-
-        // Touch support for screen devices
-        canvas.addEventListener('touchmove', (e) => {
-            if (e.touches.length > 0) {
-                const rect = canvas.getBoundingClientRect();
-                mouse.x = e.touches[0].clientX - rect.left;
-                mouse.y = e.touches[0].clientY - rect.top;
-            }
-        });
-
-        canvas.addEventListener('touchend', () => {
-            mouse.x = null;
-            mouse.y = null;
-        });
-
-        canvas.addEventListener('touchstart', (e) => {
-            if (e.touches.length > 0) {
-                const rect = canvas.getBoundingClientRect();
-                const touchX = e.touches[0].clientX - rect.left;
-                const touchY = e.touches[0].clientY - rect.top;
-                ripples.push(new Ripple(touchX, touchY));
-            }
-        });
-
-        // Set up execution context
-        window.onload = function() {
-            resizeCanvas();
-            animate();
-        }
-
-        window.addEventListener('resize', resizeCanvas);
+        /* ---------- Scroll transitions: connector lines draw, then each study rises in ---------- */
+        (function(){
+            const items = document.querySelectorAll('.study-link, .study');
+            if (!('IntersectionObserver' in window)) { items.forEach(el => el.classList.add('in')); return; }
+            const io = new IntersectionObserver((entries) => {
+                entries.forEach(e => {
+                    if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+                });
+            }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+            items.forEach(el => io.observe(el));
+        })();
 
         /* ---------- Lightbox: click any photo to pop it up bigger ---------- */
         function openLightbox(src, caption) {
