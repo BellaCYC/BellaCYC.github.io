@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Yuan-Chen (Bella) Chou - Projects</title>
@@ -359,11 +359,6 @@
     .rehab-coach-reps i{ width:16px; height:4px; border-radius:2px; background:#e8dfd3; transition:background .3s ease; }
     .rehab-coach-reps i.done{ background:var(--rehab-accent); }
     .rehab-coach-reps i.now{ background:#d9a46b; }
-    .rehab-replay{
-        position:absolute; left:10px; bottom:8px; z-index:3; border:1px solid var(--line); background:rgba(255,255,255,0.85);
-        border-radius:999px; padding:0.25rem 0.7rem; font-size:0.65rem; font-weight:500; color:var(--ink-soft); cursor:pointer;
-    }
-    .rehab-replay:hover{ color:var(--ink); }
     @media (max-width:640px){
         .rehab-row{ grid-template-columns:1fr; }
         .rehab-stage{ min-height:300px; }
@@ -649,7 +644,6 @@
                     <div class="rehab-coach-hint" id="rehab-coach-hint">Lift each knee to hip height</div>
                     <div class="rehab-coach-reps" id="rehab-coach-reps"></div>
                 </div>
-                <button type="button" class="rehab-replay" id="rehab-replay">&#8635; Replay</button>
             </div>
             <canvas id="rehab-canvas" aria-label="Animated avatar jumping out of the photo and doing rehabilitation exercises"></canvas>
         </div>
@@ -1301,7 +1295,6 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
     const coachName = document.getElementById('rehab-coach-name');
     const coachHint = document.getElementById('rehab-coach-hint');
     const coachReps = document.getElementById('rehab-coach-reps');
-    const replayBtn = document.getElementById('rehab-replay');
     if(!row || !canvas || !photo || !stage) return;
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -1478,7 +1471,6 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
         if(reduce){ phase = 'exercise'; coach.classList.add('show'); setCoach(); return; }
         phase = 'appear'; t0 = performance.now();
     }
-    replayBtn && replayBtn.addEventListener('click', begin);
 
     const clock = new THREE.Clock();
     function frame(){
