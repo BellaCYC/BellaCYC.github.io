@@ -338,6 +338,37 @@
     .zoomable{ cursor:zoom-in; transition:transform .2s ease, box-shadow .2s ease; }
     .zoomable:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,0.12); }
 
+    /* ---------- 3D Rehab: photo + the stage the avatar jumps onto ---------- */
+    .rehab-row{ position:relative; display:grid; grid-template-columns:auto minmax(260px,1fr); gap:1rem; align-items:stretch; margin-top:1rem; }
+    .rehab-row > img{ position:relative; z-index:1; }
+    .rehab-stage{ position:relative; min-height:256px; border-radius:16px; }
+    /* the canvas reaches 170px above the row so the jump's arc is never cut off (it ignores clicks) */
+    #rehab-canvas{ position:absolute; left:0; right:0; bottom:0; top:-170px; width:100%; height:calc(100% + 170px); z-index:2; pointer-events:none; }
+    .rehab-coach{
+        position:absolute; right:10px; top:10px; z-index:3; min-width:170px;
+        padding:0.6rem 0.8rem; border-radius:14px;
+        background:rgba(255,255,255,0.78); border:1px solid rgba(139,94,52,0.18);
+        box-shadow:0 10px 24px rgba(60,40,20,0.08);
+        opacity:0; transform:translateY(6px); transition:opacity .4s ease, transform .4s ease;
+    }
+    .rehab-coach.show{ opacity:1; transform:none; }
+    .rehab-coach-kicker{ font-size:0.58rem; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:var(--rehab-accent); }
+    .rehab-coach-name{ font-family:'Fraunces',serif; font-size:1.05rem; color:var(--ink); line-height:1.2; margin-top:2px; }
+    .rehab-coach-hint{ font-size:0.68rem; color:var(--ink-soft); margin-top:2px; }
+    .rehab-coach-reps{ display:flex; gap:4px; margin-top:0.45rem; }
+    .rehab-coach-reps i{ width:16px; height:4px; border-radius:2px; background:#e8dfd3; transition:background .3s ease; }
+    .rehab-coach-reps i.done{ background:var(--rehab-accent); }
+    .rehab-coach-reps i.now{ background:#d9a46b; }
+    .rehab-replay{
+        position:absolute; left:10px; bottom:8px; z-index:3; border:1px solid var(--line); background:rgba(255,255,255,0.85);
+        border-radius:999px; padding:0.25rem 0.7rem; font-size:0.65rem; font-weight:500; color:var(--ink-soft); cursor:pointer;
+    }
+    .rehab-replay:hover{ color:var(--ink); }
+    @media (max-width:640px){
+        .rehab-row{ grid-template-columns:1fr; }
+        .rehab-stage{ min-height:300px; }
+    }
+
     /* ---------- Lightbox: photos and videos open large on top of the page ---------- */
     #lightbox{
         position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:2rem;
@@ -608,8 +639,19 @@
             <li>Planning to leverage camera pose estimation, such as MediaPipe／OpenPose, to provide patients with just-in-time guidance of movements.</li>
         </ul>
 
-        <div class="flex flex-row flex-wrap gap-4 py-2 mt-4">
-            <img src="https://i.pinimg.com/736x/07/5b/c8/075bc8107cc55dbe0943478875e16c5b.jpg" alt="3D rehab course planner running on a laptop" referrerpolicy="no-referrer" onclick="openLightboxImage(this.src, this.alt)" class="zoomable h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+        <!-- the photo, and the space beside it where the avatar lands after jumping out of the photo -->
+        <div class="rehab-row" id="rehab-row">
+            <img id="rehab-photo" src="https://i.pinimg.com/736x/07/5b/c8/075bc8107cc55dbe0943478875e16c5b.jpg" alt="3D rehab course planner running on a laptop" referrerpolicy="no-referrer" onclick="openLightboxImage(this.src, this.alt)" class="zoomable h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+            <div class="rehab-stage" id="rehab-stage">
+                <div class="rehab-coach" id="rehab-coach" aria-live="polite">
+                    <div class="rehab-coach-kicker">Home exercise</div>
+                    <div class="rehab-coach-name" id="rehab-coach-name">Knee raise</div>
+                    <div class="rehab-coach-hint" id="rehab-coach-hint">Lift each knee to hip height</div>
+                    <div class="rehab-coach-reps" id="rehab-coach-reps"></div>
+                </div>
+                <button type="button" class="rehab-replay" id="rehab-replay">&#8635; Replay</button>
+            </div>
+            <canvas id="rehab-canvas" aria-label="Animated avatar jumping out of the photo and doing rehabilitation exercises"></canvas>
         </div>
 
         <!-- demo video series: lined up left-to-right like the photo strip above -->
@@ -1237,6 +1279,286 @@ window.RingDemo = (function(){
     lb.addEventListener('click', function(e){ if(e.target === lb) close(); });
     document.getElementById('lightbox-close').addEventListener('click', close);
     document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && lb.classList.contains('open')) close(); });
+})();
+</script>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+</script>
+<script type="module">
+/* ================= 3D Rehab: the blocky avatar jumps out of the photo and starts its exercises =================
+   One transparent canvas lies over the photo and the empty space beside it. When the row scrolls into view,
+   the avatar appears on top of the figure in the photo, crouches, jumps out onto the page, lands on a mat
+   and loops through four rehabilitation exercises while a small coach card counts the reps. */
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+(function(){
+    const row = document.getElementById('rehab-row');
+    const canvas = document.getElementById('rehab-canvas');
+    const photo = document.getElementById('rehab-photo');
+    const stage = document.getElementById('rehab-stage');
+    const coach = document.getElementById('rehab-coach');
+    const coachName = document.getElementById('rehab-coach-name');
+    const coachHint = document.getElementById('rehab-coach-hint');
+    const coachReps = document.getElementById('rehab-coach-reps');
+    const replayBtn = document.getElementById('rehab-replay');
+    if(!row || !canvas || !photo || !stage) return;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    let renderer;
+    try{ renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true }); }
+    catch(e){ return; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+    const scene = new THREE.Scene();
+    // orthographic camera measured in CSS pixels: x right, y up, origin at the row's top-left corner
+    const camera = new THREE.OrthographicCamera(0, 1, 0, -1, -2000, 2000);
+    camera.position.set(0, 0, 1000);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xcbb89a, 1.1));
+    const sun = new THREE.DirectionalLight(0xffffff, 1.6);
+    sun.position.set(-300, 500, 700);
+    scene.add(sun);
+
+    // ---------- the avatar (blocky, like the one in the planner app) ----------
+    // built in "voxel" units: 32 units tall, feet at y = 0
+    const U = 1;
+    const mat = c => new THREE.MeshStandardMaterial({ color:c, roughness:0.75, metalness:0 });
+    const SKIN = mat(0xe8b48e), HAIR = mat(0x2b211c), SHIRT = mat(0x9b1d2a), SHIRT_DK = mat(0x7d1621),
+          JEANS = mat(0x3a5a92), JEANS_DK = mat(0x2f4a7a), SHOE = mat(0xf4f4f2), SOLE = mat(0x9aa3ad), EYE = mat(0x1f2430), WHITE = mat(0xffffff);
+    const box = (w, h, d, m, r = 0.6) => new THREE.Mesh(new RoundedBoxGeometry(w, h, d, 2, r), m);
+    const at = (mesh, x, y, z) => { mesh.position.set(x, y, z); return mesh; };
+
+    const avatar = new THREE.Group();      // placed in pixel space
+    const body = new THREE.Group();        // squash, bob and turning live here
+    avatar.add(body);
+    const hips = new THREE.Group();        // pelvis height (drops for squats)
+    hips.position.y = 12;
+    body.add(hips);
+
+    // torso + head
+    const torso = new THREE.Group();
+    hips.add(torso);
+    torso.add(at(box(8, 12, 4.4, SHIRT), 0, 6, 0));
+    torso.add(at(box(8.2, 1.4, 4.6, SHIRT_DK, 0.4), 0, 0.6, 0));            // hem
+    torso.add(at(box(2.6, 2.2, 0.4, WHITE, 0.3), 1.6, 8.4, 2.25));            // small chest logo
+    const head = new THREE.Group();
+    head.position.y = 12;
+    torso.add(head);
+    head.add(at(box(7.6, 7.6, 7.6, SKIN, 1.0), 0, 4, 0));
+    head.add(at(box(8.1, 2.6, 8.1, HAIR, 0.9), 0, 7.2, -0.1));               // hair top
+    head.add(at(box(8.1, 5.2, 2.2, HAIR, 0.8), 0, 5.2, -3.1));               // hair back
+    head.add(at(box(1.2, 3.2, 6.4, HAIR, 0.5), -3.75, 5.6, -0.6));           // sideburns
+    head.add(at(box(1.2, 3.2, 6.4, HAIR, 0.5), 3.75, 5.6, -0.6));
+    head.add(at(box(1.1, 1.3, 0.4, EYE, 0.3), -1.6, 4.3, 3.82));             // eyes
+    head.add(at(box(1.1, 1.3, 0.4, EYE, 0.3), 1.6, 4.3, 3.82));
+    head.add(at(box(2.2, 0.5, 0.3, mat(0xb9765a), 0.2), 0, 2.2, 3.82));      // mouth
+
+    // arms: shoulder pivot -> upper arm -> elbow pivot -> forearm + hand
+    function makeArm(sx){
+        const shoulder = new THREE.Group(); shoulder.position.set(sx * 5.9, 11, 0); torso.add(shoulder);
+        shoulder.add(at(box(3.6, 6, 3.6, SHIRT), 0, -2.6, 0));
+        const elbow = new THREE.Group(); elbow.position.y = -5.6; shoulder.add(elbow);
+        elbow.add(at(box(3.3, 5, 3.3, SKIN), 0, -2.4, 0));
+        elbow.add(at(box(3.5, 1.4, 3.5, SKIN, 0.6), 0, -5.2, 0));
+        return { shoulder, elbow };
+    }
+    // legs: hip pivot -> thigh -> knee pivot -> shin -> shoe
+    function makeLeg(sx){
+        const hip = new THREE.Group(); hip.position.set(sx * 2.05, 0, 0); hips.add(hip);
+        hip.add(at(box(3.9, 6.2, 4, JEANS), 0, -2.9, 0));
+        const knee = new THREE.Group(); knee.position.y = -6; hip.add(knee);
+        knee.add(at(box(3.7, 5.2, 3.8, JEANS), 0, -2.5, 0));
+        knee.add(at(box(3.8, 0.8, 3.9, JEANS_DK, 0.3), 0, -4.9, 0));            // cuff
+        knee.add(at(box(3.9, 1.6, 5.4, SHOE, 0.6), 0, -5.6, 0.7));
+        knee.add(at(box(4.0, 0.5, 5.6, SOLE, 0.2), 0, -6.3, 0.7));
+        return { hip, knee };
+    }
+    const armL = makeArm(-1), armR = makeArm(1), legL = makeLeg(-1), legR = makeLeg(1);
+    body.traverse(o => { if(o.isMesh){ o.castShadow = false; } });
+
+    // soft contact shadow + exercise mat (sit under the avatar, in pixel space)
+    const shadowTex = (() => {
+        const c = document.createElement('canvas'); c.width = c.height = 128;
+        const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+        gr.addColorStop(0, 'rgba(30,40,30,0.35)'); gr.addColorStop(1, 'rgba(30,40,30,0)');
+        g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+        return new THREE.CanvasTexture(c);
+    })();
+    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map:shadowTex, transparent:true, depthWrite:false }));
+    const matMesh = new THREE.Mesh(new RoundedBoxGeometry(1, 1, 1, 3, 0.12), new THREE.MeshStandardMaterial({ color:0x6cbf4f, roughness:0.9 }));
+    const matEdge = new THREE.Mesh(new RoundedBoxGeometry(1, 1, 1, 3, 0.12), new THREE.MeshStandardMaterial({ color:0x4f9a3a, roughness:0.9 }));
+    scene.add(matEdge, matMesh, shadow, avatar);
+
+    // ---------- layout: where things are on the page, in canvas pixels ----------
+    let W = 1, H = 1, start = { x:0, y:0, s:1 }, goal = { x:0, y:0, s:1 };
+    const VOX = 32;   // avatar height in voxel units
+    function layout(){
+        const r = canvas.getBoundingClientRect();   // includes the extra room above the row
+        W = Math.max(1, r.width); H = Math.max(1, r.height);
+        renderer.setSize(W, H, false);
+        camera.left = 0; camera.right = W; camera.top = 0; camera.bottom = -H; camera.updateProjectionMatrix();
+        const p = photo.getBoundingClientRect(), s = stage.getBoundingClientRect();
+        // the figure in the photo stands a little right of centre, feet about 80% of the way down
+        start = { x: p.left - r.left + p.width * 0.52, y: -(p.top - r.top + p.height * 0.8), s: (p.height * 0.3) / VOX };
+        const tall = Math.min(s.height * 0.62, 190);
+        goal = { x: s.left - r.left + s.width * 0.5, y: -(s.top - r.top + s.height * 0.82), s: tall / VOX };
+        const mw = tall * 1.2;
+        matMesh.scale.set(mw, 3, mw * 0.5);  matMesh.position.set(goal.x, goal.y - 2, -60);
+        matEdge.scale.set(mw + 6, 2, mw * 0.5 + 6); matEdge.position.set(goal.x, goal.y - 3.5, -62);
+        matMesh.rotation.x = matEdge.rotation.x = 0.32;
+    }
+
+    // ---------- exercises ----------
+    const D = Math.PI / 180;
+    const EXERCISES = [
+        { name:'Knee raise',       hint:'Lift each knee to hip height',  reps:4, dur:1.5 },
+        { name:'Mini squat',       hint:'Sit back, keep heels down',     reps:4, dur:1.8 },
+        { name:'Arm raise',        hint:'Both arms up, slow and steady', reps:4, dur:1.7 },
+        { name:'Side leg raise',   hint:'Stand tall, lift to the side',  reps:4, dur:1.5 }
+    ];
+    const ease = x => 0.5 - 0.5 * Math.cos(Math.PI * Math.min(Math.max(x, 0), 1));
+    function resetPose(){
+        [armL, armR].forEach(a => { a.shoulder.rotation.set(0, 0, 0); a.elbow.rotation.set(0, 0, 0); });
+        [legL, legR].forEach(l => { l.hip.rotation.set(0, 0, 0); l.knee.rotation.set(0, 0, 0); });
+        armL.shoulder.rotation.z = -6 * D; armR.shoulder.rotation.z = 6 * D;
+        hips.position.y = 12; torso.rotation.set(0, 0, 0); head.rotation.set(0, 0, 0); body.position.y = 0;
+    }
+    // k = 0..1 progress through one repetition; rep = rep number (alternates sides)
+    function pose(ex, k, rep){
+        resetPose();
+        const w = Math.sin(Math.PI * k);           // 0 -> 1 -> 0 over the rep
+        const side = rep % 2 === 0 ? legL : legR, other = rep % 2 === 0 ? legR : legL;
+        if(ex === 0){            // knee raise
+            side.hip.rotation.x = -88 * D * w; side.knee.rotation.x = 92 * D * w;
+            const a = rep % 2 === 0 ? armR : armL, b = rep % 2 === 0 ? armL : armR;
+            a.shoulder.rotation.x = -35 * D * w; a.elbow.rotation.x = -40 * D * w;
+            b.shoulder.rotation.x = 20 * D * w;
+            body.position.y = w * 0.4;
+        } else if(ex === 1){     // mini squat: thighs forward, shins back, pelvis drops, arms reach forward
+            const a = 55 * D * w;
+            [legL, legR].forEach(l => { l.hip.rotation.x = -a; l.knee.rotation.x = 2 * a; });
+            hips.position.y = 12 - 2 * 6 * (1 - Math.cos(a));
+            torso.rotation.x = 22 * D * w;
+            [armL, armR].forEach(m => { m.shoulder.rotation.x = -80 * D * w; });
+            head.rotation.x = -14 * D * w;
+        } else if(ex === 2){     // arm raise overhead
+            const a = 165 * D * w;
+            [armL, armR].forEach(m => { m.shoulder.rotation.x = -a; });
+            armL.shoulder.rotation.z = -6 * D * (1 - w); armR.shoulder.rotation.z = 6 * D * (1 - w);
+            head.rotation.x = -10 * D * w;
+            body.position.y = w * 0.3;
+        } else {                 // side leg raise, hands on hips
+            const sx = rep % 2 === 0 ? -1 : 1;
+            side.hip.rotation.z = sx * 34 * D * w;
+            torso.rotation.z = -sx * 5 * D * w;
+            [[armL, -1], [armR, 1]].forEach(([m, s]) => { m.shoulder.rotation.z = s * 42 * D; m.elbow.rotation.z = -s * 95 * D; m.elbow.rotation.x = -10 * D; });
+            other.knee.rotation.x = 4 * D * w;
+        }
+    }
+
+    // ---------- timeline ----------
+    let phase = 'idle', t0 = 0, exIndex = 0, repIndex = 0, repT = 0, visible = false, started = false;
+    const JUMP = { appear:0.45, crouch:0.35, fly:1.05, land:0.4 };
+    function setCoach(){
+        const ex = EXERCISES[exIndex];
+        coachName.textContent = ex.name;
+        coachHint.textContent = ex.hint;
+        coachReps.innerHTML = '';
+        for(let i = 0; i < ex.reps; i++){
+            const d = document.createElement('i');
+            if(i < repIndex) d.className = 'done';
+            if(i === repIndex) d.className = 'now';
+            coachReps.appendChild(d);
+        }
+    }
+    function begin(){
+        started = true; exIndex = 0; repIndex = 0; repT = 0;
+        coach.classList.remove('show');
+        if(reduce){ phase = 'exercise'; coach.classList.add('show'); setCoach(); return; }
+        phase = 'appear'; t0 = performance.now();
+    }
+    replayBtn && replayBtn.addEventListener('click', begin);
+
+    const clock = new THREE.Clock();
+    function frame(){
+        requestAnimationFrame(frame);
+        const dt = Math.min(clock.getDelta(), 0.05);
+        if(!visible || !started) return;
+        const el = (performance.now() - t0) / 1000;
+        let x = goal.x, y = goal.y, s = goal.s, spin = -0.5, squash = 1, alpha = 1, matK = 1;
+
+        if(phase === 'appear' || phase === 'crouch' || phase === 'fly' || phase === 'land'){
+            resetPose();
+            matK = 0;
+            if(phase === 'appear'){                         // fades in right on top of the figure in the photo
+                const k = el / JUMP.appear;
+                x = start.x; y = start.y; s = start.s; spin = 0.15; alpha = Math.min(1, k * 1.4);
+                if(k >= 1){ phase = 'crouch'; t0 = performance.now(); }
+            } else if(phase === 'crouch'){                  // gets ready to jump
+                const k = el / JUMP.crouch;
+                x = start.x; y = start.y; s = start.s; spin = 0.15;
+                squash = 1 - 0.18 * Math.sin(Math.PI * Math.min(k, 1));
+                [legL, legR].forEach(l => { l.hip.rotation.x = -30 * D * Math.sin(Math.PI * Math.min(k,1)); l.knee.rotation.x = 60 * D * Math.sin(Math.PI * Math.min(k,1)); });
+                hips.position.y = 12 - 1.6 * Math.sin(Math.PI * Math.min(k,1));
+                [armL, armR].forEach(m => { m.shoulder.rotation.x = 40 * D * Math.sin(Math.PI * Math.min(k,1)); });
+                if(k >= 1){ phase = 'fly'; t0 = performance.now(); }
+            } else if(phase === 'fly'){                     // arcs out of the photo, growing, with one turn
+                const k = Math.min(el / JUMP.fly, 1), e = ease(k);
+                x = start.x + (goal.x - start.x) * e;
+                const peak = Math.min(150, Math.max(90, Math.abs(goal.x - start.x) * 0.3));
+                y = start.y + (goal.y - start.y) * e + Math.sin(Math.PI * k) * peak;
+                s = start.s + (goal.s - start.s) * e;
+                spin = 0.15 + (Math.PI * 2 - 0.65) * e;
+                [armL, armR].forEach(m => { m.shoulder.rotation.x = -150 * D * Math.sin(Math.PI * k); });
+                [legL, legR].forEach((l, i) => { l.hip.rotation.x = (i ? -25 : 15) * D * Math.sin(Math.PI * k); l.knee.rotation.x = 35 * D * Math.sin(Math.PI * k); });
+                if(k >= 1){ phase = 'land'; t0 = performance.now(); }
+            } else {                                         // lands with a little squash, mat appears
+                const k = Math.min(el / JUMP.land, 1);
+                squash = 1 - 0.2 * Math.sin(Math.PI * k);
+                const b = Math.sin(Math.PI * k);
+                [legL, legR].forEach(l => { l.hip.rotation.x = -28 * D * b; l.knee.rotation.x = 56 * D * b; });
+                hips.position.y = 12 - 1.5 * b;
+                matK = k;
+                if(k >= 1){ phase = 'exercise'; repT = 0; coach.classList.add('show'); setCoach(); }
+            }
+        } else if(phase === 'exercise'){
+            const ex = EXERCISES[exIndex];
+            repT += dt / ex.dur;
+            if(repT >= 1){
+                repT -= 1; repIndex++;
+                if(repIndex >= ex.reps){ repIndex = 0; exIndex = (exIndex + 1) % EXERCISES.length; }
+                setCoach();
+            }
+            pose(exIndex, ease(repT), repIndex);
+            spin = -0.5 + Math.sin(performance.now() / 2600) * 0.08;
+        }
+
+        avatar.position.set(x, y, 0);
+        avatar.scale.setScalar(s);
+        body.scale.set(1 + (1 - squash) * 0.5, squash, 1 + (1 - squash) * 0.5);
+        body.rotation.set(0.18, spin, 0);
+        avatar.traverse(o => { if(o.material){ o.material.transparent = alpha < 1; o.material.opacity = alpha; } });
+        shadow.position.set(x, y + 1, -40);
+        shadow.scale.set(s * 22, s * 7, 1);
+        shadow.material.opacity = alpha * (phase === 'fly' ? 0.5 : 1);
+        matMesh.visible = matEdge.visible = matK > 0.01;
+        matMesh.material.opacity = matEdge.material.opacity = matK;
+        matMesh.material.transparent = matEdge.material.transparent = matK < 1;
+        renderer.render(scene, camera);
+    }
+
+    layout();
+    window.addEventListener('resize', layout);
+    if('ResizeObserver' in window) new ResizeObserver(layout).observe(row);
+    photo.complete ? layout() : photo.addEventListener('load', layout);
+    if('IntersectionObserver' in window){
+        new IntersectionObserver(en => {
+            visible = en[0].isIntersecting;
+            if(visible && !started && en[0].intersectionRatio > 0.45) begin();
+        }, { threshold:[0, 0.45, 0.6] }).observe(row);
+    } else { visible = true; begin(); }
+    requestAnimationFrame(frame);
 })();
 </script>
 </body>
