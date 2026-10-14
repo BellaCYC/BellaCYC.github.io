@@ -323,7 +323,39 @@
         width:280px; flex:0 0 auto;
     }
     .rehab-video-embed{ position:relative; width:100%; aspect-ratio:16/9; border-radius:9px; overflow:hidden; background:#111; }
-    .rehab-video-embed iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; }
+    .rehab-video-embed iframe{ position:absolute; inset:0; width:100%; height:100%; border:0; pointer-events:none; }
+    /* the whole card is a button: clicking opens the video large (the iframe itself can't take clicks) */
+    .rehab-video-card{ cursor:zoom-in; transition:transform .25s ease, box-shadow .25s ease; position:relative; }
+    .rehab-video-card:hover{ transform:translateY(-3px); box-shadow:0 14px 30px rgba(0,0,0,0.1); }
+    .rehab-video-card:focus-visible{ outline:2px solid var(--rehab-accent); outline-offset:3px; }
+    .rehab-zoom-hint{
+        position:absolute; right:14px; bottom:14px; z-index:2;
+        display:flex; align-items:center; gap:5px; padding:4px 9px; border-radius:999px;
+        background:rgba(15,23,42,0.62); color:#fff; font-size:0.62rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
+        opacity:0; transform:translateY(4px); transition:opacity .2s ease, transform .2s ease; pointer-events:none;
+    }
+    .rehab-video-card:hover .rehab-zoom-hint, .rehab-video-card:focus-visible .rehab-zoom-hint{ opacity:1; transform:none; }
+    .zoomable{ cursor:zoom-in; transition:transform .2s ease, box-shadow .2s ease; }
+    .zoomable:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,0.12); }
+
+    /* ---------- Lightbox: photos and videos open large on top of the page ---------- */
+    #lightbox{
+        position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:2rem;
+        background:rgba(15,23,42,0.88); cursor:zoom-out;
+    }
+    #lightbox.open{ display:flex; animation:lbIn .25s ease; }
+    @keyframes lbIn{ from{ opacity:0; } to{ opacity:1; } }
+    #lightbox-stage{ cursor:default; animation:lbPop .3s cubic-bezier(.2,.8,.2,1); }
+    @keyframes lbPop{ from{ transform:scale(.94); opacity:0; } to{ transform:none; opacity:1; } }
+    #lightbox-stage img{ display:block; max-width:min(92vw,1100px); max-height:86vh; width:auto; height:auto; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+    #lightbox-stage .lb-video{ width:min(92vw,1100px); aspect-ratio:16/9; max-height:84vh; border-radius:14px; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.5); background:#000; }
+    #lightbox-stage .lb-video iframe{ width:100%; height:100%; border:0; display:block; }
+    #lightbox-close{
+        position:absolute; top:1.25rem; right:1.5rem; width:40px; height:40px; border-radius:50%;
+        background:rgba(255,255,255,0.12); color:#fff; border:1px solid rgba(255,255,255,0.25);
+        font-size:1.4rem; line-height:1; display:flex; align-items:center; justify-content:center; cursor:pointer;
+    }
+    #lightbox-close:hover{ background:rgba(255,255,255,0.22); }
 
     /* ---------- Background: two soft colour clouds drifting slowly behind the page (light green + light brown) ----------
        Same style as the Research page. Soft edges come from radial gradients (no blur filter) and the
@@ -577,30 +609,34 @@
         </ul>
 
         <div class="flex flex-row flex-wrap gap-4 py-2 mt-4">
-            <img src="https://i.pinimg.com/736x/07/5b/c8/075bc8107cc55dbe0943478875e16c5b.jpg" alt="Photo 1" referrerpolicy="no-referrer" class="h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
+            <img src="https://i.pinimg.com/736x/07/5b/c8/075bc8107cc55dbe0943478875e16c5b.jpg" alt="3D rehab course planner running on a laptop" referrerpolicy="no-referrer" onclick="openLightboxImage(this.src, this.alt)" class="zoomable h-64 w-auto max-w-full object-contain bg-slate-100 rounded-xl border border-slate-200 shadow-sm p-1" />
         </div>
 
         <!-- demo video series: lined up left-to-right like the photo strip above -->
         <div class="rehab-video-grid mt-6 hide-scroll" style="overflow-x:auto; flex-wrap:nowrap;">
-            <div class="rehab-video-card">
+            <div class="rehab-video-card" role="button" tabindex="0" data-video="G3IDe_n94NI" aria-label="Rehab training demo 1: open larger">
                 <div class="rehab-video-embed">
-                    <iframe src="https://www.youtube.com/embed/G3IDe_n94NI" title="Rehab training demo 1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                    <iframe data-src="https://www.youtube.com/embed/G3IDe_n94NI?autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=G3IDe_n94NI&amp;controls=0&amp;playsinline=1&amp;rel=0&amp;modestbranding=1&amp;enablejsapi=1" title="Rehab training demo 1" allow="autoplay; encrypted-media; picture-in-picture" tabindex="-1"></iframe>
                 </div>
+                <span class="rehab-zoom-hint">&#x2922; View larger</span>
             </div>
-            <div class="rehab-video-card">
+            <div class="rehab-video-card" role="button" tabindex="0" data-video="gW2TnZbsJOA" aria-label="Rehab training demo 2: open larger">
                 <div class="rehab-video-embed">
-                    <iframe src="https://www.youtube.com/embed/gW2TnZbsJOA" title="Rehab training demo 2" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                    <iframe data-src="https://www.youtube.com/embed/gW2TnZbsJOA?autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=gW2TnZbsJOA&amp;controls=0&amp;playsinline=1&amp;rel=0&amp;modestbranding=1&amp;enablejsapi=1" title="Rehab training demo 2" allow="autoplay; encrypted-media; picture-in-picture" tabindex="-1"></iframe>
                 </div>
+                <span class="rehab-zoom-hint">&#x2922; View larger</span>
             </div>
-            <div class="rehab-video-card">
+            <div class="rehab-video-card" role="button" tabindex="0" data-video="pxeROAQsAyg" aria-label="Rehab training demo 3: open larger">
                 <div class="rehab-video-embed">
-                    <iframe src="https://www.youtube.com/embed/pxeROAQsAyg" title="Rehab training demo 3" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                    <iframe data-src="https://www.youtube.com/embed/pxeROAQsAyg?autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=pxeROAQsAyg&amp;controls=0&amp;playsinline=1&amp;rel=0&amp;modestbranding=1&amp;enablejsapi=1" title="Rehab training demo 3" allow="autoplay; encrypted-media; picture-in-picture" tabindex="-1"></iframe>
                 </div>
+                <span class="rehab-zoom-hint">&#x2922; View larger</span>
             </div>
-            <div class="rehab-video-card">
+            <div class="rehab-video-card" role="button" tabindex="0" data-video="rjQcDgfeapg" aria-label="Rehab training demo 4: open larger">
                 <div class="rehab-video-embed">
-                    <iframe src="https://www.youtube.com/embed/rjQcDgfeapg" title="Rehab training demo 4" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                    <iframe data-src="https://www.youtube.com/embed/rjQcDgfeapg?autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=rjQcDgfeapg&amp;controls=0&amp;playsinline=1&amp;rel=0&amp;modestbranding=1&amp;enablejsapi=1" title="Rehab training demo 4" allow="autoplay; encrypted-media; picture-in-picture" tabindex="-1"></iframe>
                 </div>
+                <span class="rehab-zoom-hint">&#x2922; View larger</span>
             </div>
         </div>
     </section>
@@ -649,6 +685,12 @@
     </section>
 
 </main>
+
+<!-- lightbox: photos and videos open large here -->
+<div id="lightbox" aria-modal="true" role="dialog" aria-label="Enlarged view">
+    <button id="lightbox-close" type="button" aria-label="Close">&times;</button>
+    <div id="lightbox-stage"></div>
+</div>
 
 <script>
 /* ================= 01 — Smart Ring: companion app + your two 3D models =================
@@ -1141,6 +1183,61 @@ window.RingDemo = (function(){
     else requestAnimationFrame(loop);
 })();
 
+</script>
+
+<script>
+/* ================= 3D Rehab: autoplaying preview videos + click to view larger ================= */
+(function(){
+    var cards = document.querySelectorAll('.rehab-video-card');
+    var lb = document.getElementById('lightbox'), stage = document.getElementById('lightbox-stage');
+
+    function send(iframe, func){
+        try{ iframe.contentWindow.postMessage(JSON.stringify({ event:'command', func:func, args:[] }), '*'); }catch(e){}
+    }
+    // previews load and play (muted, looping) only while they are on screen; they pause when scrolled away
+    if('IntersectionObserver' in window){
+        var io = new IntersectionObserver(function(entries){
+            entries.forEach(function(e){
+                var f = e.target.querySelector('iframe');
+                if(e.isIntersecting){
+                    if(!f.src) f.src = f.dataset.src; else send(f, 'playVideo');
+                } else if(f.src){ send(f, 'pauseVideo'); }
+            });
+        }, { rootMargin:'150px 0px' });
+        cards.forEach(function(c){ io.observe(c); });
+    } else {
+        cards.forEach(function(c){ var f = c.querySelector('iframe'); f.src = f.dataset.src; });
+    }
+
+    function open(html){
+        stage.innerHTML = html;
+        lb.classList.add('open');
+        document.body.style.overflow = 'hidden';
+        cards.forEach(function(c){ var f = c.querySelector('iframe'); if(f.src) send(f, 'pauseVideo'); });
+    }
+    function close(){
+        lb.classList.remove('open');
+        stage.innerHTML = ''; // stops the large video
+        document.body.style.overflow = '';
+        cards.forEach(function(c){ var f = c.querySelector('iframe'); if(f.src) send(f, 'playVideo'); });
+    }
+    window.openLightboxImage = function(src, alt){
+        var img = document.createElement('img');
+        img.src = src; img.alt = alt || ''; img.referrerPolicy = 'no-referrer';
+        open(''); stage.appendChild(img);
+    };
+    function openVideo(id){
+        // opened by a click, so it starts with sound and full controls
+        open('<div class="lb-video"><iframe src="https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1" title="Rehab training video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>');
+    }
+    cards.forEach(function(c){
+        c.addEventListener('click', function(){ openVideo(c.dataset.video); });
+        c.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openVideo(c.dataset.video); } });
+    });
+    lb.addEventListener('click', function(e){ if(e.target === lb) close(); });
+    document.getElementById('lightbox-close').addEventListener('click', close);
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && lb.classList.contains('open')) close(); });
+})();
 </script>
 </body>
 </html>
