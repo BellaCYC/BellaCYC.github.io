@@ -17,6 +17,7 @@
         --brain-accent:#5865f2;
         --aid-accent:#0f766e;
         --rehab-accent:#8b5e34;
+        --dent-accent:#1f6f9f;
     }
     *{box-sizing:border-box;}
     body{ font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); }
@@ -364,6 +365,73 @@
         .rehab-stage{ min-height:300px; }
     }
 
+    /* ---------- Dental Post-Op Portal: patient FAQ (left) + the question bank behind it (right) ---------- */
+    .dent-demo{
+        display:grid; grid-template-columns:minmax(0,1.45fr) minmax(0,1fr); gap:1rem;
+        margin-top:2.5rem; font-family:'Inter',sans-serif;
+    }
+    .dent-browser{
+        background:#fff; border:1px solid var(--line); border-radius:18px; overflow:hidden;
+        box-shadow:0 18px 36px rgba(31,111,159,0.08); display:flex; flex-direction:column; min-width:0;
+    }
+    .dent-bar{ display:flex; align-items:center; gap:0.5rem; padding:0.55rem 0.8rem; background:#f4f7f9; border-bottom:1px solid #e3eaef; }
+    .dent-bar i{ width:8px; height:8px; border-radius:50%; background:#d5dde3; display:inline-block; }
+    .dent-url{ flex:1; margin-left:0.35rem; font-size:0.62rem; color:var(--ink-soft); background:#fff; border:1px solid #e3eaef; border-radius:999px; padding:0.22rem 0.7rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .dent-body{ padding:1rem 1.05rem 1.1rem; display:flex; flex-direction:column; gap:0.75rem; }
+    .dent-hello-kicker{ font-size:0.58rem; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:var(--dent-accent); }
+    .dent-hello-title{ font-family:'Fraunces',serif; font-size:1.2rem; color:var(--ink); line-height:1.2; margin-top:2px; }
+    .dent-chips{ display:flex; flex-wrap:wrap; gap:0.35rem; }
+    .dent-chip{
+        border:1px solid var(--line); background:#fff; color:var(--ink-soft); border-radius:999px; cursor:pointer;
+        padding:0.3rem 0.75rem; font-family:inherit; font-size:0.66rem; font-weight:500;
+        transition:background .2s ease, color .2s ease, border-color .2s ease;
+    }
+    .dent-chip:hover{ color:var(--ink); }
+    .dent-chip.on{ background:var(--dent-accent); border-color:var(--dent-accent); color:#fff; }
+    .dent-chip:focus-visible, .dent-q:focus-visible, .dent-toggle button:focus-visible{ outline:2px solid var(--dent-accent); outline-offset:2px; }
+    .dent-qs{ display:flex; flex-direction:column; gap:0.3rem; }
+    .dent-q{
+        display:flex; align-items:center; gap:0.5rem; width:100%; text-align:left; cursor:pointer;
+        border:1px solid #e8eef2; background:#fbfcfd; border-radius:12px; padding:0.5rem 0.7rem;
+        font-family:inherit; font-size:0.74rem; color:var(--ink); transition:background .2s ease, border-color .2s ease;
+    }
+    .dent-q:hover{ background:#f3f8fb; }
+    .dent-q.on{ background:#eaf3f9; border-color:#b9d6e8; }
+    .dent-q-mark{ width:18px; height:18px; flex-shrink:0; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.62rem; font-weight:700; color:var(--dent-accent); border:1.5px solid var(--dent-accent); background:#fff; }
+    .dent-answer{ border-radius:14px; background:#f6f9fb; border:1px solid #e3eaef; padding:0.75rem 0.85rem; }
+    .dent-answer-head{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.5rem; margin-bottom:0.45rem; }
+    .dent-answer-label{ font-size:0.6rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-soft); }
+    .dent-toggle{ display:inline-flex; gap:3px; padding:3px; border:1px solid var(--line); border-radius:999px; background:#fff; }
+    .dent-toggle button{ border:0; background:transparent; cursor:pointer; border-radius:999px; padding:0.22rem 0.6rem; font-family:inherit; font-size:0.6rem; font-weight:500; color:var(--ink-soft); white-space:nowrap; transition:background .2s ease, color .2s ease; }
+    .dent-toggle button.on{ background:var(--ink); color:#fff; }
+    .dent-answer-text{ font-family:'Times New Roman',Times,serif; font-size:1rem; line-height:1.45; color:#1f2937; min-height:4.4em; transition:opacity .25s ease, transform .25s ease; }
+    .dent-answer-text.swap{ opacity:0; transform:translateY(4px); }
+    .dent-answer.is-clinical .dent-answer-text{ color:#55606b; font-style:italic; }
+
+    .dent-db{
+        background:#14232e; color:#cfe0ea; border-radius:18px; padding:0.9rem 0.9rem 1rem; min-width:0;
+        box-shadow:0 18px 36px rgba(20,35,46,0.18); display:flex; flex-direction:column; gap:0.6rem;
+        font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    }
+    .dent-db-head{ display:flex; align-items:center; gap:0.45rem; font-family:'Inter',sans-serif; font-size:0.62rem; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:#8fb4c9; }
+    .dent-db-head svg{ width:14px; height:14px; color:#8fb4c9; flex-shrink:0; }
+    .dent-sql{ font-size:0.64rem; line-height:1.5; background:#0e1a22; border:1px solid #233847; border-radius:10px; padding:0.5rem 0.6rem; white-space:pre-wrap; word-break:break-word; }
+    .dent-sql .k{ color:#7cc4f0; } .dent-sql .s{ color:#f0c27c; }
+    .dent-table{ width:100%; border-collapse:collapse; font-size:0.6rem; table-layout:fixed; }
+    .dent-table th{ text-align:left; font-weight:600; color:#8fb4c9; padding:0.3rem 0.35rem; border-bottom:1px solid #233847; }
+    .dent-table th:first-child{ width:24px; } .dent-table th:nth-child(2){ width:34%; }
+    .dent-table td{ padding:0.32rem 0.35rem; border-bottom:1px solid #1b2c38; color:#5f7a8b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; transition:color .3s ease, background .3s ease; }
+    .dent-table tr.hit td{ color:#e6f2f9; background:rgba(124,196,240,0.08); }
+    .dent-table tr.sel td{ background:rgba(124,196,240,0.2); }
+    .dent-db-foot{ font-family:'Inter',sans-serif; font-size:0.6rem; color:#8fb4c9; text-align:right; }
+
+    @media (max-width:820px){
+        .dent-demo{ grid-template-columns:1fr; }
+    }
+    @media (prefers-reduced-motion: reduce){
+        .dent-answer-text{ transition:none; }
+    }
+
     /* ---------- Lightbox: photos and videos open large on top of the page ---------- */
     #lightbox{
         position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center; padding:2rem;
@@ -680,9 +748,79 @@
 
     <div class="proj-link" aria-hidden="true"><span class="proj-link-line"></span><span class="proj-link-dot"></span></div>
 
-    <!-- ============ 04 — ESSAYBRAIN ============ -->
+    <!-- ============ 04 — DENTAL POST-OPERATIVE PATIENT PORTAL ============ -->
     <section class="proj-block reveal">
-        <span class="idx" style="color:var(--brain-accent);">04 / Discord Bot</span>
+        <span class="idx" style="color:var(--dent-accent);">04 / Personal Project</span>
+        <h2 class="display proj-title mt-2" style="color:var(--dent-accent);">Dental Post-Operative Patient Portal</h2>
+        <p class="text-sm mt-2" style="color:var(--ink-soft); font-family:'Times New Roman',Times,serif;">2025 &middot; Taipei Shutien Charming Dental Clinic</p>
+        <div class="flex flex-wrap gap-2 mt-5 mb-6">
+            <span class="tag">React</span>
+            <span class="tag">Tailwind CSS</span>
+            <span class="tag">PostgreSQL</span>
+        </div>
+        <ul style="font-family:'Times New Roman',Times,serif; color:#374151;" class="list-disc pl-6 space-y-3 text-lg leading-relaxed max-w-2xl">
+            <li>Designed a website for post-operative patients in Taipei Shutien Charming Dental Clinic using React and Tailwind CSS.</li>
+            <li>Collected common confusions among post-operative patients from dentists and created an FAQ page on website.</li>
+            <li>Classified question types and built a question-and-answer bank using PostgreSQL.</li>
+            <li>Paraphrased professional phrases into easier and more understandable explanations.</li>
+        </ul>
+
+        <!-- interactive illustration: patient FAQ page (left) and the PostgreSQL question bank it reads from (right) -->
+        <div class="dent-demo" id="dent-demo">
+            <div class="dent-browser">
+                <div class="dent-bar" aria-hidden="true"><i></i><i></i><i></i><span class="dent-url">post-op care &middot; after your procedure</span></div>
+                <div class="dent-body">
+                    <div>
+                        <div class="dent-hello-kicker">After your procedure</div>
+                        <div class="dent-hello-title">What would you like to know?</div>
+                    </div>
+                    <div class="dent-chips" id="dent-chips" role="group" aria-label="Question type"></div>
+                    <div class="dent-qs" id="dent-qs"></div>
+                    <div class="dent-answer" id="dent-answer">
+                        <div class="dent-answer-head">
+                            <span class="dent-answer-label" id="dent-answer-label">Answer</span>
+                            <div class="dent-toggle" role="group" aria-label="Wording">
+                                <button type="button" data-mode="clinical">Dentist's wording</button>
+                                <button type="button" data-mode="plain" class="on">Plain wording</button>
+                            </div>
+                        </div>
+                        <div class="dent-answer-text" id="dent-answer-text" aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dent-db" aria-label="Question-and-answer bank in PostgreSQL">
+                <div class="dent-db-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+                    Question bank &middot; PostgreSQL
+                </div>
+                <div class="dent-sql" id="dent-sql"></div>
+                <table class="dent-table">
+                    <thead><tr><th>id</th><th>category</th><th>question</th></tr></thead>
+                    <tbody id="dent-rows"></tbody>
+                </table>
+                <div class="dent-db-foot" id="dent-db-foot"></div>
+            </div>
+        </div>
+
+        <!-- the pipeline behind the portal -->
+        <div class="ring-flow">
+            <span class="tag">Dentists' notes</span>
+            <span class="flow-arrow" style="color:var(--dent-accent);">&rarr;</span>
+            <span class="tag">Question types</span>
+            <span class="flow-arrow" style="color:var(--dent-accent);">&rarr;</span>
+            <span class="tag">Q&amp;A bank &middot; PostgreSQL</span>
+            <span class="flow-arrow" style="color:var(--dent-accent);">&rarr;</span>
+            <span class="tag">Plain-language FAQ</span>
+        </div>
+        <p class="aid-note">Interactive illustration with sample answers, not medical advice.</p>
+    </section>
+
+    <div class="proj-link" aria-hidden="true"><span class="proj-link-line"></span><span class="proj-link-dot"></span></div>
+
+    <!-- ============ 05 — ESSAYBRAIN ============ -->
+    <section class="proj-block reveal">
+        <span class="idx" style="color:var(--brain-accent);">05 / Discord Bot</span>
         <h2 class="display proj-title mt-2" style="color:var(--brain-accent);">EssayBrain</h2>
         <div class="flex flex-wrap gap-2 mt-5 mb-6">
             <span class="tag">Python</span>
@@ -1552,6 +1690,134 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
         }, { threshold:[0, 0.45, 0.6] }).observe(row);
     } else { visible = true; begin(); }
     requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+/* ================= 04 — Dental Post-Op Portal: FAQ page + the question bank behind it =================
+   Pick a question type -> the SQL query and matching rows update on the right.
+   Pick a question -> its answer appears; flip between the dentist's wording and the plain wording.
+   Until the visitor clicks anything, it walks through the questions on its own (only while on screen). */
+(function(){
+    var demo = document.getElementById('dent-demo');
+    if(!demo) return;
+
+    var CATS = ['Bleeding', 'Swelling & pain', 'Eating', 'Cleaning'];
+    var FAQ = [
+        { cat:'Bleeding', q:'Is it normal for the area to keep oozing?',
+          clinical:'Minor oozing may persist for up to 24 hours post-extraction. Apply firm pressure with sterile gauze for 30–45 minutes to promote clot formation.',
+          plain:'A little pink in your saliva on the first day is normal. Fold a clean gauze pad, bite down firmly, and hold it for about 30–45 minutes so a clot can form.' },
+        { cat:'Bleeding', q:'When should I call the clinic?',
+          clinical:'Contact the clinic if hemorrhage persists despite sustained pressure, or if fever or purulent discharge develops.',
+          plain:'Call us if the bleeding does not slow down after you have pressed on it for a while, or if you get a fever or notice pus.' },
+        { cat:'Swelling & pain', q:'Why is my cheek more swollen on day two?',
+          clinical:'Postoperative edema typically peaks at 48–72 hours. Apply cold compresses intermittently during the first 24–48 hours.',
+          plain:'Swelling usually gets worse before it gets better, peaking around day two or three. For the first day or two, hold a cloth-wrapped ice pack on your cheek, on and off.' },
+        { cat:'Swelling & pain', q:'How long will it hurt?',
+          clinical:'Discomfort generally subsides within 3–5 days. Increasing pain after day 3 may indicate alveolar osteitis.',
+          plain:'Soreness usually fades within a few days. If the pain gets worse instead of better after day three, call us: it could be a “dry socket.”' },
+        { cat:'Eating', q:'Can I drink through a straw?',
+          clinical:'Avoid negative intraoral pressure (straws, smoking) for at least 72 hours to prevent clot dislodgement.',
+          plain:'Skip straws for the first few days. Sucking can pull out the clot that protects the wound.' },
+        { cat:'Eating', q:'What can I eat today?',
+          clinical:'Maintain a soft, cool diet for the first 24 hours; avoid hot, spicy, or hard foods near the surgical site.',
+          plain:'Stick to soft, cool food today, like yogurt, tofu, or lukewarm congee, and chew on the other side.' },
+        { cat:'Cleaning', q:'Can I brush my teeth tonight?',
+          clinical:'Resume brushing while avoiding the surgical site; refrain from vigorous rinsing for 24 hours.',
+          plain:'Yes. Brush gently, but stay away from the wound, and do not swish or spit hard on the first day.' },
+        { cat:'Cleaning', q:'When can I rinse with salt water?',
+          clinical:'After 24 hours, gentle warm saline rinses may be initiated after meals.',
+          plain:'From the second day, gently rinse with warm salt water after meals, and let it fall out of your mouth instead of spitting.' }
+    ];
+
+    var chipsEl = document.getElementById('dent-chips');
+    var qsEl = document.getElementById('dent-qs');
+    var answer = document.getElementById('dent-answer');
+    var label = document.getElementById('dent-answer-label');
+    var text = document.getElementById('dent-answer-text');
+    var sqlEl = document.getElementById('dent-sql');
+    var rowsEl = document.getElementById('dent-rows');
+    var foot = document.getElementById('dent-db-foot');
+    var modeBtns = demo.querySelectorAll('.dent-toggle button');
+
+    var cat = CATS[0], pick = 0, mode = 'plain';
+    var auto = true, visible = false, timer = null, step = 0;
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // the question bank, drawn once
+    FAQ.forEach(function(f, i){
+        var tr = document.createElement('tr');
+        tr.innerHTML = '<td>' + (i + 1) + '</td><td>' + esc(f.cat) + '</td><td>' + esc(f.q) + '</td>';
+        rowsEl.appendChild(tr);
+    });
+    var rows = rowsEl.children;
+
+    CATS.forEach(function(c){
+        var b = document.createElement('button');
+        b.type = 'button'; b.className = 'dent-chip'; b.textContent = c;
+        b.addEventListener('click', function(){ stopAuto(); setCat(c); });
+        chipsEl.appendChild(b);
+    });
+
+    function setCat(c){
+        cat = c;
+        Array.prototype.forEach.call(chipsEl.children, function(b){ b.classList.toggle('on', b.textContent === c); });
+        sqlEl.innerHTML = '<span class="k">SELECT</span> question, answer\n<span class="k">FROM</span> faq\n<span class="k">WHERE</span> category = <span class="s">\'' + esc(c) + '\'</span>;';
+        var hits = 0;
+        FAQ.forEach(function(f, i){ var on = f.cat === c; rows[i].classList.toggle('hit', on); if(on) hits++; });
+        foot.textContent = hits + ' of ' + FAQ.length + ' rows';
+        qsEl.innerHTML = '';
+        FAQ.forEach(function(f, i){
+            if(f.cat !== c) return;
+            var b = document.createElement('button');
+            b.type = 'button'; b.className = 'dent-q'; b.dataset.i = i;
+            b.innerHTML = '<span class="dent-q-mark">?</span><span>' + esc(f.q) + '</span>';
+            b.addEventListener('click', function(){ stopAuto(); setQ(i); });
+            qsEl.appendChild(b);
+        });
+        setQ(FAQ.findIndex(function(f){ return f.cat === c; }));
+    }
+
+    function setQ(i){
+        pick = i;
+        Array.prototype.forEach.call(qsEl.children, function(b){ b.classList.toggle('on', +b.dataset.i === i); });
+        Array.prototype.forEach.call(rows, function(r, n){ r.classList.toggle('sel', n === i); });
+        render();
+    }
+
+    function setMode(m){
+        mode = m;
+        modeBtns.forEach(function(b){ b.classList.toggle('on', b.dataset.mode === m); });
+        render();
+    }
+
+    function render(){
+        var f = FAQ[pick];
+        answer.classList.toggle('is-clinical', mode === 'clinical');
+        label.textContent = mode === 'clinical' ? 'As the dentist wrote it' : 'As the patient reads it';
+        text.classList.add('swap');
+        setTimeout(function(){ text.textContent = f[mode]; text.classList.remove('swap'); }, reduce ? 0 : 220);
+    }
+
+    modeBtns.forEach(function(b){ b.addEventListener('click', function(){ stopAuto(); setMode(b.dataset.mode); }); });
+
+    // tour: for each question, show the dentist's wording, then the plain wording, then move on
+    function tick(){
+        if(!auto || !visible) return;
+        if(mode === 'clinical'){ setMode('plain'); return; }
+        step = (pick + 1) % FAQ.length;
+        if(FAQ[step].cat !== cat){ mode = 'clinical'; setCat(FAQ[step].cat); modeBtns.forEach(function(b){ b.classList.toggle('on', b.dataset.mode === 'clinical'); }); }
+        else { setQ(step); setMode('clinical'); }
+    }
+    function stopAuto(){ auto = false; clearInterval(timer); }
+
+    setCat(cat);
+    if(!reduce) timer = setInterval(tick, 3200);
+    if('IntersectionObserver' in window){
+        new IntersectionObserver(function(en){ visible = en[0].isIntersecting; }, { threshold:0.35 }).observe(demo);
+    } else { visible = true; }
 })();
 </script>
 </body>
