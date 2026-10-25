@@ -590,164 +590,9 @@
 
         <div class="study-link" aria-hidden="true"><span class="study-link-line"></span><span class="study-link-dot"></span></div>
 
-        <section id="middle-ear" class="study space-y-3 scroll-mt-24">
-            <div class="space-y-2">
-                <p class="study-kicker">Study 01 / 05</p>
-                <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
-                    <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Middle Ear Disease Diagnosis Research</span>
-                </h2>
-            </div>
-
-            <div class="grid grid-cols-1 gap-8">
-                <div class="study-card border-2 border-gray-200 rounded-md p-6 bg-white shadow-sm my-4">
-                    <h3 class="text-lg font-semibold italic text-gray-900 mb-3" style="font-family: 'Times New Roman', Times, serif;">
-                        Contribution
-                    </h3>
-                    <ul style="font-family: 'Times New Roman', Times, serif;" class="list-disc pl-6 space-y-3 text-lg text-gray-800 leading-relaxed">
-                        <li>Chu YC, Lin KH, Chou YC, Huang YA, Chen YC, Chen CH, Hsu CY, Cheng YF, Liao WH, Kuo CT. AI-Assisted Detection Support for Middle Ear Diseases Using Multimodal Large Language Models. Stud Health Technol Inform. 2025 Aug 7;329:1059-1063. doi: 10.3233/SHTI251001. PMID: <a href="https://pubmed.ncbi.nlm.nih.gov/40776019/" class="text-blue-600 underline">40776019</a>.</li>
-                        <li>Tested an AI-powered system using Azure OpenAI's GPT-4 Vision, the first multimodal large language model (LLM) applied to analyze otoscopic images from a hospital UI system and detect ten middle ear conditions.</li>
-                        <li>Manually filtered low-quality images to ensure clean inputs for model training, transferred low-quality images to physicians to correctly label disease types, and used prompt engineering to define what disease type the model should evaluate</li>
-                        <li>Input otoscopic image data into different Convolutional neural network (CNN) models to identify the middle ear disease type data point with the highest accuracy</li>
-                        <li>Integrated back-end data processing with front-end UI system for otoscopic images using Azure OpenAI API into a Model-View-Controller (MVC)- based application</li>
-                    </ul>
-
-                    <!-- animated research workflow: horizontal 4-stage system diagram, current flows spine-to-spine and box-to-box -->
-                    <div class="wf-diagram">
-                        <div class="wf-title">System Workflow &middot; AI-Assisted Diagnosis for Middle Ear Disease</div>
-
-                        <div class="wf-spine">
-                            <div class="wf-spine-line"></div>
-                            <div class="wf-spine-node" style="--wf-accent:#2563eb; --wf-accent-rgb:37,99,235;">1</div>
-                            <div class="wf-spine-node" style="--wf-accent:#16a34a; --wf-accent-rgb:22,163,74;">2</div>
-                            <div class="wf-spine-node" style="--wf-accent:#d97706; --wf-accent-rgb:217,119,6;">3</div>
-                            <div class="wf-spine-node" style="--wf-accent:#dc2626; --wf-accent-rgb:220,38,38;">4</div>
-                        </div>
-
-                        <div class="wf-cols">
-                            <!-- 1: DATA INGESTION & CURATION -->
-                            <div class="wf-col wf-col-1">
-                                <div class="wf-col-header">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
-                                    <span>Data Ingestion &amp;<br>Curation Pipeline</span>
-                                </div>
-                                <div class="wf-col-body">
-                                    <div class="wf-box">
-                                        <strong>Otoscopic Image Collection</strong>
-                                        <span>Extracted from the hospital's UI system.</span>
-                                    </div>
-                                    <div class="wf-connector"></div>
-                                    <div class="wf-box">
-                                        <strong>Quality Control &amp; Filtering</strong>
-                                        <span>Manual filtering to exclude poor-quality images; physician review to label disease types.</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 2: MODEL BENCHMARKING -->
-                            <div class="wf-col wf-col-2">
-                                <div class="wf-col-header">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>
-                                    <span>Model Benchmarking &amp;<br>Prompt Engineering</span>
-                                </div>
-                                <div class="wf-col-body">
-                                    <div class="wf-box">
-                                        <strong>CNN Model Benchmarking</strong>
-                                        <span>Evaluated CNN architectures to identify the highest-accuracy classifier.</span>
-                                    </div>
-                                    <div class="wf-connector"></div>
-                                    <div class="wf-box">
-                                        <strong>Multimodal Prompt Engineering</strong>
-                                        <span>Azure OpenAI GPT-4 Vision, prompted to evaluate and classify across ten disease categories.</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 3: MVC-BASED SYSTEM ARCHITECTURE -->
-                            <div class="wf-col wf-col-3">
-                                <div class="wf-col-header">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-                                    <span>MVC-Based System<br>Architecture</span>
-                                </div>
-                                <div class="wf-col-body">
-                                    <div class="wf-box">
-                                        <strong>View Layer</strong>
-                                        <span>Hospital UI interface for image upload and result display.</span>
-                                    </div>
-                                    <div class="wf-connector"></div>
-                                    <div class="wf-box">
-                                        <strong>Controller &amp; Model Layers</strong>
-                                        <span>Back-end data processing wired to the AI models via the Azure OpenAI API.</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 4: CLINICAL OUTPUT -->
-                            <div class="wf-col wf-col-4">
-                                <div class="wf-col-header">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                                    <span>Clinical Inference &amp;<br>Diagnostic Output</span>
-                                </div>
-                                <div class="wf-col-body">
-                                    <div class="wf-box">
-                                        <strong>Disease Classification</strong>
-                                        <span>Ten target middle-ear conditions, returned to the clinician's UI.</span>
-                                    </div>
-                                    <div class="wf-connector"></div>
-                                    <div class="wf-box">
-                                        <strong>MVC-Delivered Report</strong>
-                                        <span>Diagnostic support surfaced back through the hospital's front-end application.</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="wf-footer">
-                            <span>End-to-end pipeline</span>
-                            <span class="wf-footer-line"></span>
-                            <span>Otoscopic image &rarr; AI-assisted diagnosis</span>
-                        </div>
-                    </div>
-
-                    <!-- laptop mockup: angled 3/4 view, full (uncropped) screenshots, front image crossfades every 2s -->
-                    <div class="laptop-mock">
-                        <div class="laptop-3d">
-                            <div class="laptop-screen-frame">
-                                <div class="laptop-camera"></div>
-                                <div class="laptop-screen" id="laptop-screen">
-                                    <div class="laptop-card" data-slot="0" onclick="openLightbox(this.querySelector('img').src, this.querySelector('img').alt)">
-                                        <img src="https://i.pinimg.com/736x/03/a6/69/03a669630f498254c5296f38834ea13d.jpg" referrerpolicy="no-referrer" alt="AI ENT system — otoscopic image upload" />
-                                    </div>
-                                    <div class="laptop-card" data-slot="1" onclick="openLightbox(this.querySelector('img').src, this.querySelector('img').alt)">
-                                        <img src="https://i.pinimg.com/736x/a2/df/11/a2df11a966b8d6909b0fa0b49a8aa780.jpg" referrerpolicy="no-referrer" alt="AI ENT system — tympanic membrane AI analysis result" />
-                                    </div>
-                                    <div class="laptop-card" data-slot="2" onclick="openLightbox(this.querySelector('img').src, this.querySelector('img').alt)">
-                                        <img src="https://i.pinimg.com/736x/ae/77/83/ae7783e5a5000ec86aaed313b76a950f.jpg" referrerpolicy="no-referrer" alt="AI ENT system — audiogram upload" />
-                                    </div>
-                                    <div class="laptop-card" data-slot="3" onclick="openLightbox(this.querySelector('img').src, this.querySelector('img').alt)">
-                                        <img src="https://i.pinimg.com/736x/d7/2d/b1/d72db143816b46a7f42e880864081363.jpg" referrerpolicy="no-referrer" alt="AI ENT system — audiogram AI analysis result" />
-                                    </div>
-                                    
-                                </div>
-                            </div>
-                            <div class="laptop-base"></div>
-                        </div>
-                        <div class="laptop-ground-shadow"></div>
-                        <!-- floating caption: one line about the screenshot on screen -->
-                        <div class="laptop-caption" id="laptop-caption" aria-live="polite">
-                            <span class="laptop-caption-step" id="laptop-caption-step">Step 1 / 4 &middot; Upload</span>
-                            <div class="laptop-caption-text" id="laptop-caption-text">The clinician uploads an otoscope photo of the eardrum.</div>
-                        </div>
-                        <div class="laptop-dots" id="laptop-dots" role="group" aria-label="Choose a screenshot"></div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <div class="study-link" aria-hidden="true"><span class="study-link-line"></span><span class="study-link-dot"></span></div>
-
         <section id="cardiac-signal" class="study space-y-3 scroll-mt-24">
             <div class="space-y-2">
-                <p class="study-kicker">Study 02 / 05</p>
+                <p class="study-kicker">Study 01 / 04</p>
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Cardiac Signal Analysis Research</span>
                 </h2>
@@ -778,7 +623,7 @@
 
         <section id="cancer-gene" class="study space-y-3 scroll-mt-24">
             <div class="space-y-2">
-                <p class="study-kicker">Study 03 / 05</p>
+                <p class="study-kicker">Study 02 / 04</p>
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Cancer Gene Classification Research</span>
                 </h2>
@@ -810,7 +655,7 @@
 
         <section id="icu-monitoring" class="study space-y-3 scroll-mt-24">
             <div class="space-y-2">
-                <p class="study-kicker">Study 04 / 05</p>
+                <p class="study-kicker">Study 03 / 04</p>
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">ICU Vital-Sign Monitoring</span>
                 </h2>
@@ -834,7 +679,7 @@
 
         <section id="tumor-board-speech" class="study space-y-3 scroll-mt-24">
             <div class="space-y-2">
-                <p class="study-kicker">Study 05 / 05</p>
+                <p class="study-kicker">Study 04 / 04</p>
                 <h2 class="text-2xl font-bold text-slate-800 border-b border-slate-200 pb-2">
                     <span style="font-family: 'Times New Roman', Times, serif; font-size: 20px;">Mandarin Tumor-Board Speech</span>
                 </h2>
