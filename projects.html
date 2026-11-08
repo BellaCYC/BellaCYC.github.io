@@ -19,6 +19,7 @@
         --rehab-accent:#8b5e34;
         --dent-accent:#1f6f9f;
         --ear-accent:#2c4f8f;
+        --still-accent:#a07a7f;
     }
     *{box-sizing:border-box;}
     body{ font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); }
@@ -722,6 +723,129 @@
     .aid-mute.muted{ background:#16302c; color:#fff; border-color:#16302c; }
     .aid-mute.muted .aid-mute-on{ display:none; }
     .aid-mute.muted .aid-mute-off{ display:block; }
+
+    /* ---------- 07 StillLife: mini Windows desktop with the top-edge island and the Morandi glass plate ---------- */
+    .sl-desk{
+        position:relative; width:100%; max-width:680px; margin:2.6rem auto 0; aspect-ratio:16/10;
+        border-radius:20px; overflow:hidden; border:1px solid var(--line);
+        box-shadow:0 22px 46px rgba(80,66,70,0.12);
+        background:linear-gradient(160deg, #e8e1d8 0%, #d9d6cc 45%, #cfd6d0 100%);
+        font-family:'Inter',sans-serif; user-select:none;
+    }
+    .sl-wall{ position:absolute; inset:0; pointer-events:none; }
+    .sl-blob{ position:absolute; border-radius:50%; }
+    .sl-blob.b1{ width:55%; height:80%; left:-12%; top:20%; background:radial-gradient(circle, rgba(201,167,173,0.55), rgba(201,167,173,0) 68%); }
+    .sl-blob.b2{ width:50%; height:75%; right:-10%; top:-15%; background:radial-gradient(circle, rgba(170,186,168,0.6), rgba(170,186,168,0) 68%); }
+    .sl-blob.b3{ width:40%; height:60%; left:38%; bottom:-25%; background:radial-gradient(circle, rgba(214,196,168,0.6), rgba(214,196,168,0) 68%); }
+    .sl-edge{ position:absolute; left:0; right:0; top:0; height:16px; z-index:4; cursor:n-resize; }
+
+    .sl-island{ position:absolute; left:50%; top:9px; transform:translateX(-50%); z-index:5; display:flex; flex-direction:column; align-items:center; width:84%; pointer-events:none; }
+    .sl-pill{
+        pointer-events:auto; display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+        height:26px; padding:0 13px 0 9px; border-radius:999px; border:0;
+        background:#2b2829; color:#efe7e2; font-family:inherit; font-size:0.66rem; font-weight:600; letter-spacing:0.02em;
+        box-shadow:0 6px 16px rgba(30,24,26,0.25);
+        transition:transform .45s cubic-bezier(.3,1.4,.5,1), opacity .3s ease;
+        animation:slBreath 3.2s ease-in-out infinite;
+    }
+    @keyframes slBreath{ 0%,100%{ box-shadow:0 6px 16px rgba(30,24,26,0.25), 0 0 0 0 rgba(201,167,173,0.0); } 50%{ box-shadow:0 6px 16px rgba(30,24,26,0.25), 0 0 0 5px rgba(201,167,173,0.35); } }
+    .sl-pill:focus-visible{ outline:2px solid var(--still-accent); outline-offset:3px; }
+    .sl-saturn{ width:15px; height:15px; flex-shrink:0; }
+    .sl-desk.open .sl-pill{ transform:scale(.6) translateY(-18px); opacity:0; pointer-events:none; animation:none; }
+
+    /* the plate grows out of the pill */
+    .sl-plate{
+        pointer-events:auto; width:100%; margin-top:-26px; padding:12px 14px 14px;
+        border-radius:22px; color:#3c3638;
+        background:rgba(250,246,242,0.62); border:1px solid rgba(255,255,255,0.75);
+        backdrop-filter:blur(14px) saturate(1.1); -webkit-backdrop-filter:blur(14px) saturate(1.1);
+        box-shadow:0 24px 50px rgba(60,48,52,0.22), inset 0 1px 0 rgba(255,255,255,0.8);
+        transform-origin:50% 0; transform:scale(.18, .08); opacity:0; visibility:hidden;
+        transition:transform .55s cubic-bezier(.25,1.25,.4,1), opacity .3s ease, visibility 0s linear .55s;
+    }
+    .sl-desk.open .sl-plate{ transform:none; opacity:1; visibility:visible; transition:transform .55s cubic-bezier(.25,1.25,.4,1), opacity .25s ease, visibility 0s; }
+    .sl-plate > *{ transition:opacity .3s ease .15s; }
+    .sl-desk:not(.open) .sl-plate > *{ opacity:0; transition-delay:0s; }
+
+    .sl-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .sl-brand{ display:flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:700; color:#3c3638; }
+    .sl-seg{ display:flex; gap:2px; padding:3px; margin-left:auto; border-radius:999px; background:rgba(120,104,108,0.12); }
+    .sl-segbtn{ border:0; background:transparent; cursor:pointer; padding:4px 12px; border-radius:999px; font-family:inherit; font-size:0.66rem; font-weight:600; color:#7a6e71; transition:background .25s ease, color .25s ease; }
+    .sl-segbtn.on{ background:#fff; color:#3c3638; box-shadow:0 2px 6px rgba(60,48,52,0.12); }
+    .sl-segbtn:focus-visible, .sl-tool:focus-visible, .sl-resolve:focus-visible, .sl-check:focus-visible{ outline:2px solid var(--still-accent); outline-offset:2px; }
+
+    .sl-view{ display:none; }
+    .sl-view.on{ display:block; animation:slIn .35s ease; }
+    @keyframes slIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+
+    .sl-label{ display:inline-flex; align-items:center; gap:5px; font-size:0.62rem; font-weight:600; color:#4f4a4b; padding:2px 9px 2px 7px; border-radius:999px; background:rgba(255,255,255,0.7); }
+    .sl-label::before{ content:''; width:7px; height:7px; border-radius:50%; background:var(--c); }
+    .sl-agenda-top{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+    .sl-count{ font-size:0.62rem; color:#8a7f82; font-variant-numeric:tabular-nums; }
+    .sl-checks{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:5px; }
+    .sl-check{
+        display:flex; align-items:center; gap:9px; width:100%; text-align:left; cursor:pointer;
+        padding:7px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.8); background:rgba(255,255,255,0.55);
+        font-family:inherit; font-size:0.72rem; color:#3c3638; transition:background .25s ease, opacity .35s ease, transform .35s ease;
+    }
+    .sl-check:hover{ background:rgba(255,255,255,0.8); }
+    .sl-box{ width:15px; height:15px; border-radius:5px; border:1.6px solid #b9aeb1; flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:background .25s ease, border-color .25s ease; }
+    .sl-box svg{ width:10px; height:10px; opacity:0; transform:scale(.4); transition:opacity .2s ease, transform .25s cubic-bezier(.3,1.6,.5,1); }
+    .sl-check.done .sl-box{ background:var(--still-accent); border-color:var(--still-accent); }
+    .sl-check.done .sl-box svg{ opacity:1; transform:none; }
+    .sl-check.done .sl-txt{ color:#9d9295; text-decoration:line-through; text-decoration-color:#c9b8bc; }
+    .sl-checks.clearing .sl-check{ opacity:0; transform:translateX(24px); }
+    .sl-checks.clearing .sl-check:nth-child(2){ transition-delay:.06s; } .sl-checks.clearing .sl-check:nth-child(3){ transition-delay:.12s; } .sl-checks.clearing .sl-check:nth-child(4){ transition-delay:.18s; }
+    .sl-resolve{
+        display:block; margin:9px 0 0 auto; padding:6px 14px; border-radius:999px; border:0; cursor:pointer;
+        font-family:inherit; font-size:0.66rem; font-weight:700; color:#fff; background:var(--still-accent);
+        box-shadow:0 6px 14px rgba(160,122,127,0.35); transition:opacity .3s ease, transform .2s ease;
+    }
+    .sl-resolve:disabled{ opacity:.35; cursor:default; box-shadow:none; }
+    .sl-resolve:not(:disabled):hover{ transform:translateY(-1px); }
+
+    .sl-tools{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .sl-viewtoggle{ display:flex; gap:3px; }
+    .sl-tool{ border:0; cursor:pointer; padding:4px 9px; border-radius:8px; background:rgba(255,255,255,0.55); font-family:inherit; font-size:0.62rem; font-weight:600; color:#6f6366; display:flex; align-items:center; transition:background .2s ease, color .2s ease; }
+    .sl-tool svg{ width:12px; height:12px; fill:currentColor; }
+    .sl-tool.on, .sl-tool:hover{ background:#fff; color:#3c3638; }
+    .sl-docs{ display:grid; gap:7px; }
+    .sl-docs.block{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+    .sl-docs.list{ grid-template-columns:1fr; }
+    .sl-doc{
+        position:relative; border-radius:13px; padding:8px 9px; min-width:0;
+        background:rgba(255,255,255,0.62); border:1px solid rgba(255,255,255,0.85);
+        transition:transform .35s ease, box-shadow .25s ease;
+    }
+    .sl-doc:hover{ box-shadow:0 8px 18px rgba(60,48,52,0.12); }
+    .sl-doc h4{ margin:4px 0 3px; font-size:0.7rem; font-weight:700; color:#3c3638; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding-right:16px; }
+    .sl-doc p{ margin:0; font-size:0.58rem; line-height:1.4; color:#7a6e71; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .sl-doc pre{ margin:3px 0 0; padding:5px 6px; border-radius:7px; background:#2f2b2c; color:#e8dcd6; font-size:0.52rem; line-height:1.4; overflow:hidden; white-space:pre; }
+    .sl-doc pre b{ color:#c9a7ad; font-weight:600; } .sl-doc pre i{ color:#b7c4b1; font-style:normal; }
+    .sl-docs.list .sl-doc{ display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:10px; padding:6px 10px; }
+    .sl-docs.list .sl-doc h4{ margin:0; }
+    .sl-docs.list .sl-doc p, .sl-docs.list .sl-doc pre{ display:none; }
+    .sl-date{ font-size:0.54rem; color:#9d9295; font-variant-numeric:tabular-nums; }
+    .sl-docs.block .sl-date{ display:none; }
+    .sl-pin{ position:absolute; top:6px; right:6px; width:16px; height:16px; border:0; padding:0; background:transparent; cursor:pointer; color:#c2b5b8; transition:color .2s ease, transform .2s ease; }
+    .sl-pin svg{ width:100%; height:100%; }
+    .sl-pin.on{ color:var(--still-accent); transform:rotate(-20deg); }
+    .sl-docs.list .sl-pin{ position:static; }
+
+    .sl-taskbar{ position:absolute; left:50%; bottom:8px; transform:translateX(-50%); display:flex; gap:7px; padding:6px 10px; border-radius:12px; background:rgba(255,255,255,0.45); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:2; }
+    .sl-taskbar i{ width:16px; height:16px; border-radius:4px; background:rgba(90,80,84,0.25); }
+    .sl-taskbar .sl-tb-app{ background:radial-gradient(circle at 50% 50%, #e9d9c4 32%, #2b2829 34%); border-radius:5px; }
+
+    #stilllife.offscreen *{ animation-play-state:paused !important; }
+    @media (max-width:640px){
+        .sl-desk{ aspect-ratio:auto; min-height:430px; }
+        .sl-island{ width:94%; }
+        .sl-docs.block{ grid-template-columns:repeat(2, minmax(0,1fr)); }
+    }
+    @media (prefers-reduced-motion: reduce){
+        .sl-pill{ animation:none; }
+        .sl-plate, .sl-pill, .sl-check{ transition:none; }
+    }
 </style>
 </head>
 <body class="antialiased text-gray-800">
@@ -1297,6 +1421,73 @@
                 </div>
             </div>
             <span class="tap-affordance" id="tap-affordance">Tap to continue</span>
+        </div>
+    </section>
+
+    <div class="proj-link" aria-hidden="true"><span class="proj-link-line"></span><span class="proj-link-dot"></span></div>
+
+    <!-- ============ 07 — STILLLIFE ============ -->
+    <section class="proj-block reveal" id="stilllife">
+        <span class="idx" style="color:var(--still-accent);">07 / Personal Project</span>
+        <h2 class="display proj-title mt-2" style="color:var(--still-accent);">StillLife</h2>
+        <div class="flex flex-wrap gap-2 mt-5 mb-6">
+            <span class="tag">Windows App</span>
+            <span class="tag">UI/UX</span>
+            <span class="tag">Morandi Design</span>
+            <span class="tag">GitHub Release</span>
+        </div>
+        <ul style="font-family:'Times New Roman',Times,serif; color:#374151;" class="list-disc pl-6 space-y-3 text-lg leading-relaxed max-w-2xl">
+            <li>Building StillLife, a Windows notes app inspired by Mac desktop notes: notes stay on the desktop instead of disappearing when you press Show desktop, like Windows Sticky Notes do</li>
+            <li>Designed a Dynamic-Island-style pop-up that slides down when the cursor touches the top edge of the screen, gathering every note onto one glassy plate in fresh Morandi colours instead of scattering them across the desktop</li>
+            <li>Releasing it free on GitHub (BellaCYC/Still-Life) as a one-click installer, so non-technical users can download it without app stores</li>
+        </ul>
+
+        <!-- interactive mini desktop: move to the top edge (or tap the pill) and the island drops down into the notes plate -->
+        <div class="sl-desk" id="sl-desk">
+            <div class="sl-wall" aria-hidden="true"><span class="sl-blob b1"></span><span class="sl-blob b2"></span><span class="sl-blob b3"></span></div>
+            <div class="sl-edge" id="sl-edge" aria-hidden="true"></div>
+
+            <div class="sl-island" id="sl-island">
+                <button type="button" class="sl-pill" id="sl-pill" aria-expanded="false" aria-controls="sl-plate">
+                    <svg class="sl-saturn" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5.2" fill="#e9d9c4"/><ellipse cx="12" cy="12" rx="10.5" ry="3.4" fill="none" stroke="#c9a7ad" stroke-width="1.6" transform="rotate(-20 12 12)"/></svg>
+                    <span>StillLife</span>
+                </button>
+
+                <div class="sl-plate" id="sl-plate" role="region" aria-label="StillLife notes">
+                    <div class="sl-head">
+                        <div class="sl-brand">
+                            <svg class="sl-saturn" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="5.2" fill="#c9ab92"/><ellipse cx="12" cy="12" rx="10.5" ry="3.4" fill="none" stroke="#a07a7f" stroke-width="1.6" transform="rotate(-20 12 12)"/></svg>
+                            StillLife
+                        </div>
+                        <div class="sl-seg" role="tablist" aria-label="Note type">
+                            <button type="button" role="tab" class="sl-segbtn on" data-sl="agenda" aria-selected="true">Agenda</button>
+                            <button type="button" role="tab" class="sl-segbtn" data-sl="docs" aria-selected="false">Docs</button>
+                        </div>
+                    </div>
+
+                    <!-- agenda: tick everything, then "All resolved" clears the list -->
+                    <div class="sl-view on" data-sl="agenda">
+                        <div class="sl-agenda-top"><span class="sl-label" style="--c:#b7c4b1;">Today</span><span class="sl-count" id="sl-count">0 / 4 done</span></div>
+                        <ul class="sl-checks" id="sl-checks"></ul>
+                        <button type="button" class="sl-resolve" id="sl-resolve" disabled>All resolved</button>
+                    </div>
+
+                    <!-- docs: labels, pinning, sort and block / list view -->
+                    <div class="sl-view" data-sl="docs">
+                        <div class="sl-tools">
+                            <button type="button" class="sl-tool" id="sl-sort">Sort: Date</button>
+                            <div class="sl-viewtoggle">
+                                <button type="button" class="sl-tool on" data-layout="block" aria-label="Block view"><svg viewBox="0 0 16 16"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg></button>
+                                <button type="button" class="sl-tool" data-layout="list" aria-label="List view"><svg viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="2" rx="1"/><rect x="2" y="7" width="12" height="2" rx="1"/><rect x="2" y="11" width="12" height="2" rx="1"/></svg></button>
+                            </div>
+                        </div>
+                        <div class="sl-docs block" id="sl-docs"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- taskbar, so it reads as a Windows desktop -->
+            <div class="sl-taskbar" aria-hidden="true"><i></i><i></i><i class="sl-tb-app"></i><i></i><i></i></div>
         </div>
     </section>
 
@@ -2528,6 +2719,141 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 
     show(0);
     restart();
+})();
+</script>
+<script>
+/* ================= 07 StillLife: top-edge island -> Morandi glass plate with agendas and docs ================= */
+(function(){
+    var desk = document.getElementById('sl-desk');
+    if(!desk) return;
+    var pill = document.getElementById('sl-pill');
+    var edge = document.getElementById('sl-edge');
+    var plate = document.getElementById('sl-plate');
+    var checks = document.getElementById('sl-checks');
+    var countEl = document.getElementById('sl-count');
+    var resolveBtn = document.getElementById('sl-resolve');
+    var docsEl = document.getElementById('sl-docs');
+    var sortBtn = document.getElementById('sl-sort');
+    var block = document.getElementById('stilllife');
+
+    /* ---------- open / close: the cursor touching the top edge drops the island down ---------- */
+    var closeTimer = null;
+    function setOpen(on){
+        clearTimeout(closeTimer);
+        desk.classList.toggle('open', on);
+        pill.setAttribute('aria-expanded', on ? 'true' : 'false');
+    }
+    edge.addEventListener('mouseenter', function(){ setOpen(true); });
+    pill.addEventListener('click', function(){ setOpen(true); });
+    plate.addEventListener('mouseenter', function(){ clearTimeout(closeTimer); });
+    // leaving the plate tucks it back into the island after a moment
+    plate.addEventListener('mouseleave', function(e){
+        if(e.relatedTarget === edge) return;
+        clearTimeout(closeTimer);
+        closeTimer = setTimeout(function(){ setOpen(false); }, 900);
+    });
+    // a click on the bare desktop closes it
+    desk.addEventListener('click', function(e){
+        var path = e.composedPath ? e.composedPath() : [e.target];
+        if(desk.classList.contains('open') && path.indexOf(plate) < 0 && path.indexOf(pill) < 0) setOpen(false);
+    });
+    document.addEventListener('keydown', function(e){ if(e.key === 'Escape') setOpen(false); });
+
+    /* ---------- Agenda / Docs ---------- */
+    var segs = desk.querySelectorAll('.sl-segbtn'), views = desk.querySelectorAll('.sl-view');
+    segs.forEach(function(b){
+        b.addEventListener('click', function(){
+            segs.forEach(function(x){ var on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+            views.forEach(function(v){ v.classList.toggle('on', v.dataset.sl === b.dataset.sl); });
+        });
+    });
+
+    /* ---------- agenda: tick items; when everything is done, "All resolved" clears the list ---------- */
+    var LISTS = [
+        ['Finish lab report', 'Reply to team email', 'Piano practice 30 min', 'Update portfolio'],
+        ['Read chapter 7', 'Fix grammar-check bug', 'Water the plants', 'Pack for Saturday']
+    ];
+    var listIdx = 0;
+    var TICK = '<svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.2 5 8.6l4.6-5"/></svg>';
+    function buildChecks(){
+        checks.classList.remove('clearing');
+        checks.innerHTML = '';
+        LISTS[listIdx].forEach(function(t){
+            var li = document.createElement('li');
+            li.innerHTML = '<button type="button" class="sl-check" aria-pressed="false"><span class="sl-box">' + TICK + '</span><span class="sl-txt">' + t + '</span></button>';
+            var btn = li.firstChild;
+            btn.addEventListener('click', function(){
+                var on = !btn.classList.contains('done');
+                btn.classList.toggle('done', on);
+                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                updateCount();
+            });
+            checks.appendChild(li);
+        });
+        updateCount();
+    }
+    function updateCount(){
+        var all = checks.querySelectorAll('.sl-check'), done = checks.querySelectorAll('.sl-check.done');
+        countEl.textContent = done.length + ' / ' + all.length + ' done';
+        resolveBtn.disabled = done.length !== all.length;
+    }
+    resolveBtn.addEventListener('click', function(){
+        checks.classList.add('clearing');
+        resolveBtn.disabled = true;
+        setTimeout(function(){ listIdx = (listIdx + 1) % LISTS.length; buildChecks(); }, 650);
+    });
+    buildChecks();
+
+    /* ---------- docs: labels, pin, sort by date / importance, block / list view ---------- */
+    var PIN = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M9.8 1.5 14.5 6.2l-1.4.4-2.4 2.4.3 3.1-1.1 1.1-2.6-2.6L3.6 14.3l-.9-.9 3.7-3.7L3.8 7.1l1.1-1.1 3.1.3 2.4-2.4z"/></svg>';
+    var DOCS = [
+        { t:'Essay draft', label:'English', c:'#c9a7ad', date:'Nov 8', d:8, imp:3, pin:true,  p:'Second paragraph needs a stronger transition into the evidence.' },
+        { t:'Hearing aid model notes', label:'Research', c:'#b7c4b1', date:'Nov 5', d:5, imp:2, pin:false, p:'MetricGAN+ vs NeMo: denoising level and voiceprint accuracy.' },
+        { t:'denoise.py', label:'Code', c:'#d6c4a8', date:'Nov 2', d:2, imp:1, pin:false, code:'<b>def</b> clean(audio):\n    x = <i>stft</i>(audio)\n    <b>return</b> enhance(x)' }
+    ];
+    var sortBy = 'date';
+    function renderDocs(){
+        var list = DOCS.slice().sort(function(a, b){
+            if(a.pin !== b.pin) return a.pin ? -1 : 1;            // pinned notes stay on top
+            return sortBy === 'date' ? b.d - a.d : b.imp - a.imp;
+        });
+        docsEl.innerHTML = '';
+        list.forEach(function(doc){
+            var el = document.createElement('div');
+            el.className = 'sl-doc';
+            el.innerHTML =
+                '<span class="sl-label" style="--c:' + doc.c + ';">' + doc.label + '</span>' +
+                '<h4>' + doc.t + '</h4>' +
+                (doc.code ? '<pre>' + doc.code + '</pre>' : '<p>' + doc.p + '</p>') +
+                '<span class="sl-date">' + doc.date + '</span>' +
+                '<button type="button" class="sl-pin' + (doc.pin ? ' on' : '') + '" aria-label="' + (doc.pin ? 'Unpin' : 'Pin') + ' ' + doc.t + '">' + PIN + '</button>';
+            el.querySelector('.sl-pin').addEventListener('click', function(){ doc.pin = !doc.pin; renderDocs(); });
+            docsEl.appendChild(el);
+        });
+    }
+    sortBtn.addEventListener('click', function(){
+        sortBy = sortBy === 'date' ? 'importance' : 'date';
+        sortBtn.textContent = 'Sort: ' + (sortBy === 'date' ? 'Date' : 'Importance');
+        renderDocs();
+    });
+    var layoutBtns = desk.querySelectorAll('[data-layout]');
+    layoutBtns.forEach(function(b){
+        b.addEventListener('click', function(){
+            layoutBtns.forEach(function(x){ x.classList.toggle('on', x === b); });
+            docsEl.className = 'sl-docs ' + b.dataset.layout;
+        });
+    });
+    renderDocs();
+
+    /* ---------- the island drops down by itself the first time the desktop scrolls into view ---------- */
+    if('IntersectionObserver' in window){
+        var shown = false;
+        new IntersectionObserver(function(en){
+            var vis = en[0].isIntersecting;
+            block.classList.toggle('offscreen', !vis);
+            if(vis && !shown){ shown = true; setTimeout(function(){ setOpen(true); }, 1100); }
+        }, { threshold:0.45 }).observe(desk);
+    }
 })();
 </script>
 </body>
